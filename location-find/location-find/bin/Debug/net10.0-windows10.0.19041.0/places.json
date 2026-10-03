@@ -1,0 +1,1732 @@
+[
+  {
+    "Name": "HomeOffice",
+    "CreatedAt": "2026-10-02T22:09:43.5422968-03:00",
+    "Readings": [
+      {
+        "Bssid": "d8:33:b7:ca:47:7e",
+        "Ssid": "CLARO_5GCA4778",
+        "Rssi": -86
+      },
+      {
+        "Bssid": "e8:45:8b:1d:0e:fe",
+        "Ssid": "PACCOR 7",
+        "Rssi": -76
+      },
+      {
+        "Bssid": "98:ba:5f:b3:19:e6",
+        "Ssid": "J Diniz",
+        "Rssi": -83
+      },
+      {
+        "Bssid": "80:ea:0b:da:42:51",
+        "Ssid": "AT-Tereza-1208",
+        "Rssi": -82
+      },
+      {
+        "Bssid": "d0:59:19:c9:fd:e8",
+        "Ssid": "MARIA BONITA_2G",
+        "Rssi": -70
+      },
+      {
+        "Bssid": "88:81:b9:8a:47:7c",
+        "Ssid": "VDL",
+        "Rssi": -35
+      },
+      {
+        "Bssid": "88:81:b9:8a:47:80",
+        "Ssid": "VDL",
+        "Rssi": -53
+      },
+      {
+        "Bssid": "48:96:d9:55:45:e8",
+        "Ssid": "_1003",
+        "Rssi": -33
+      },
+      {
+        "Bssid": "48:96:d9:55:45:e9",
+        "Ssid": "_1003",
+        "Rssi": -36
+      },
+      {
+        "Bssid": "e0:d3:62:36:ce:4a",
+        "Ssid": "Daniel | VFIBRA ",
+        "Rssi": -80
+      },
+      {
+        "Bssid": "e0:d3:62:36:ce:48",
+        "Ssid": "Daniel | VFIBRA ",
+        "Rssi": -65
+      },
+      {
+        "Bssid": "74:69:4a:cd:74:38",
+        "Ssid": "APTO 904-2.4G",
+        "Rssi": -59
+      }
+    ],
+    "X": null,
+    "Y": null
+  },
+  {
+    "Name": "HomeOffice",
+    "CreatedAt": "2026-10-02T22:09:47.7256076-03:00",
+    "Readings": [
+      {
+        "Bssid": "a0:b5:3c:3d:29:47",
+        "Ssid": "TIOPEPE_2G",
+        "Rssi": -80
+      },
+      {
+        "Bssid": "d8:33:b7:ca:47:7e",
+        "Ssid": "CLARO_5GCA4778",
+        "Rssi": -86
+      },
+      {
+        "Bssid": "88:81:b9:8a:47:80",
+        "Ssid": "VDL",
+        "Rssi": -56
+      },
+      {
+        "Bssid": "48:96:d9:55:45:e9",
+        "Ssid": "_1003",
+        "Rssi": -36
+      },
+      {
+        "Bssid": "e0:d3:62:36:ce:4a",
+        "Ssid": "Daniel | VFIBRA ",
+        "Rssi": -84
+      }
+    ],
+    "X": null,
+    "Y": null
+  },
+  {
+    "Name": "HomeOffice",
+    "CreatedAt": "2026-10-02T22:09:51.7831355-03:00",
+    "Readings": [
+      {
+        "Bssid": "e0:d3:62:60:4a:73",
+        "Ssid": "PAULOO",
+        "Rssi": -89
+      },
+      {
+        "Bssid": "3c:82:c0:68:51:cc",
+        "Ssid": "LinkWireless_2.4",
+        "Rssi": -78
+      },
+      {
+        "Bssid": "84:01:12:c3:92:79",
+        "Ssid": "Apt_1004",
+        "Rssi": -77
+      },
+      {
+        "Bssid": "88:81:b9:8a:47:7c",
+        "Ssid": "VDL",
+        "Rssi": -36
+      },
+      {
+        "Bssid": "88:81:b9:8a:47:80",
+        "Ssid": "VDL",
+        "Rssi": -54
+      },
+      {
+        "Bssid": "48:96:d9:55:45:e8",
+        "Ssid": "_1003",
+        "Rssi": -33
+      },
+      {
+        "Bssid": "48:96:d9:55:45:e9",
+        "Ssid": "_1003",
+        "Rssi": -36
+      },
+      {
+        "Bssid": "e0:d3:62:36:ce:4a",
+        "Ssid": "Daniel | VFIBRA ",
+        "Rssi": -81
+      },
+      {
+        "Bssid": "e0:d3:62:36:ce:48",
+        "Ssid": "Daniel | VFIBRA ",
+        "Rssi": -64
+      },
+      {
+        "Bssid": "74:69:4a:cd:74:38",
+        "Ssid": "APTO 904-2.4G",
+        "Rssi": -59
+      }
+    ],
+    "X": null,
+    "Y": null
+  },
+  {
+    "Name": "corredor",
+    "CreatedAt": "2026-10-02T22:10:39.6079468-03:00",
+    "Readings": [
+      {
+        "Bssid": "20:87:ec:94:5e:2c",
+        "Ssid": "VFIBRA-CLEY 5G",
+        "Rssi": -85
+      },
+      {
+        "Bssid": "50:3d:d1:5a:dc:62",
+        "Ssid": "SOFIA_5G",
+        "Rssi": -57
+      },
+      {
+        "Bssid": "00:eb:d8:77:f7:12",
+        "Ssid": "GRUPO_VESC_RITA\u0026GUELL",
+        "Rssi": -81
+      },
+      {
+        "Bssid": "50:3d:d1:5a:dc:60",
+        "Ssid": "SOFIA",
+        "Rssi": -60
+      },
+      {
+        "Bssid": "48:96:d9:55:45:e8",
+        "Ssid": "_1003",
+        "Rssi": -68
+      },
+      {
+        "Bssid": "48:96:d9:55:45:e9",
+        "Ssid": "_1003",
+        "Rssi": -73
+      },
+      {
+        "Bssid": "e0:d3:62:36:ce:4a",
+        "Ssid": "Daniel | VFIBRA ",
+        "Rssi": -67
+      },
+      {
+        "Bssid": "e0:d3:62:36:ce:48",
+        "Ssid": "Daniel | VFIBRA ",
+        "Rssi": -59
+      }
+    ],
+    "X": null,
+    "Y": null
+  },
+  {
+    "Name": "corredor",
+    "CreatedAt": "2026-10-02T22:10:43.6704829-03:00",
+    "Readings": [
+      {
+        "Bssid": "44:89:6d:12:65:7e",
+        "Ssid": "VIVOFIBRA-WIFI6-801",
+        "Rssi": -82
+      },
+      {
+        "Bssid": "20:87:ec:94:5e:28",
+        "Ssid": "VFIBRA-CLEY 2.4",
+        "Rssi": -64
+      },
+      {
+        "Bssid": "50:3d:d1:92:38:78",
+        "Ssid": "VFibra ( Yale Net ) 2.4 GHz",
+        "Rssi": -76
+      },
+      {
+        "Bssid": "50:3d:d1:5a:dc:62",
+        "Ssid": "SOFIA_5G",
+        "Rssi": -60
+      },
+      {
+        "Bssid": "50:3d:d1:5a:dc:60",
+        "Ssid": "SOFIA",
+        "Rssi": -54
+      },
+      {
+        "Bssid": "48:96:d9:55:45:e8",
+        "Ssid": "_1003",
+        "Rssi": -66
+      },
+      {
+        "Bssid": "e0:d3:62:36:ce:4a",
+        "Ssid": "Daniel | VFIBRA ",
+        "Rssi": -65
+      }
+    ],
+    "X": null,
+    "Y": null
+  },
+  {
+    "Name": "corredor",
+    "CreatedAt": "2026-10-02T22:10:47.7143834-03:00",
+    "Readings": [
+      {
+        "Bssid": "20:87:ec:94:5e:2f",
+        "Ssid": "",
+        "Rssi": -81
+      },
+      {
+        "Bssid": "20:87:ec:94:5e:2c",
+        "Ssid": "VFIBRA-CLEY 5G",
+        "Rssi": -81
+      },
+      {
+        "Bssid": "50:3d:d1:5a:dc:62",
+        "Ssid": "SOFIA_5G",
+        "Rssi": -61
+      },
+      {
+        "Bssid": "50:3d:d1:5a:dc:60",
+        "Ssid": "SOFIA",
+        "Rssi": -43
+      },
+      {
+        "Bssid": "48:96:d9:55:45:e8",
+        "Ssid": "_1003",
+        "Rssi": -65
+      },
+      {
+        "Bssid": "48:96:d9:55:45:e9",
+        "Ssid": "_1003",
+        "Rssi": -77
+      },
+      {
+        "Bssid": "e0:d3:62:36:ce:4a",
+        "Ssid": "Daniel | VFIBRA ",
+        "Rssi": -63
+      },
+      {
+        "Bssid": "e0:d3:62:36:ce:48",
+        "Ssid": "Daniel | VFIBRA ",
+        "Rssi": -58
+      }
+    ],
+    "X": null,
+    "Y": null
+  },
+  {
+    "Name": "recep\u00E7\u00E3o",
+    "CreatedAt": "2026-10-02T22:12:04.3536454-03:00",
+    "Readings": [
+      {
+        "Bssid": "78:2e:56:f6:16:2a",
+        "Ssid": "BOA VIAGEM BEACH_5G",
+        "Rssi": -81
+      },
+      {
+        "Bssid": "48:51:cf:00:d8:01",
+        "Ssid": "Grupo24h",
+        "Rssi": -72
+      },
+      {
+        "Bssid": "d8:32:14:74:fd:41",
+        "Ssid": "THIAGO E LUNA",
+        "Rssi": -82
+      },
+      {
+        "Bssid": "78:2e:56:f6:16:29",
+        "Ssid": "BOA VIAGEM BEACH",
+        "Rssi": -62
+      },
+      {
+        "Bssid": "bc:07:1d:71:86:a0",
+        "Ssid": "POSTOS_IMPERIO5G",
+        "Rssi": -85
+      },
+      {
+        "Bssid": "64:64:4a:83:f8:9f",
+        "Ssid": "",
+        "Rssi": -86
+      },
+      {
+        "Bssid": "10:41:21:3e:bf:65",
+        "Ssid": "",
+        "Rssi": -83
+      }
+    ],
+    "X": null,
+    "Y": null
+  },
+  {
+    "Name": "recep\u00E7\u00E3o",
+    "CreatedAt": "2026-10-02T22:12:09.8983026-03:00",
+    "Readings": [
+      {
+        "Bssid": "78:2e:56:f6:16:2a",
+        "Ssid": "BOA VIAGEM BEACH_5G",
+        "Rssi": -82
+      },
+      {
+        "Bssid": "48:51:cf:00:d8:05",
+        "Ssid": "Grupo24h_5G",
+        "Rssi": -75
+      },
+      {
+        "Bssid": "48:51:cf:00:d8:01",
+        "Ssid": "Grupo24h",
+        "Rssi": -68
+      },
+      {
+        "Bssid": "78:2e:56:f6:16:29",
+        "Ssid": "BOA VIAGEM BEACH",
+        "Rssi": -57
+      },
+      {
+        "Bssid": "bc:07:1d:71:86:a0",
+        "Ssid": "POSTOS_IMPERIO5G",
+        "Rssi": -87
+      }
+    ],
+    "X": null,
+    "Y": null
+  },
+  {
+    "Name": "recep\u00E7\u00E3o",
+    "CreatedAt": "2026-10-02T22:12:13.9408721-03:00",
+    "Readings": [
+      {
+        "Bssid": "78:2e:56:f6:16:2a",
+        "Ssid": "BOA VIAGEM BEACH_5G",
+        "Rssi": -84
+      },
+      {
+        "Bssid": "48:51:cf:00:d8:01",
+        "Ssid": "Grupo24h",
+        "Rssi": -59
+      },
+      {
+        "Bssid": "78:2e:56:f6:16:29",
+        "Ssid": "BOA VIAGEM BEACH",
+        "Rssi": -61
+      },
+      {
+        "Bssid": "bc:07:1d:71:86:a0",
+        "Ssid": "POSTOS_IMPERIO5G",
+        "Rssi": -82
+      }
+    ],
+    "X": null,
+    "Y": null
+  },
+  {
+    "Name": "garagem",
+    "CreatedAt": "2026-10-02T22:12:38.8900652-03:00",
+    "Readings": [
+      {
+        "Bssid": "48:51:cf:00:d8:01",
+        "Ssid": "Grupo24h",
+        "Rssi": -72
+      },
+      {
+        "Bssid": "78:2e:56:f6:16:29",
+        "Ssid": "BOA VIAGEM BEACH",
+        "Rssi": -73
+      },
+      {
+        "Bssid": "e8:45:8b:a8:46:d8",
+        "Ssid": "VIVOFIBRA-WIFI6-46D8",
+        "Rssi": -81
+      }
+    ],
+    "X": null,
+    "Y": null
+  },
+  {
+    "Name": "garagem",
+    "CreatedAt": "2026-10-02T22:12:42.9571763-03:00",
+    "Readings": [
+      {
+        "Bssid": "78:2e:56:f6:16:2a",
+        "Ssid": "BOA VIAGEM BEACH_5G",
+        "Rssi": -69
+      },
+      {
+        "Bssid": "48:51:cf:00:d8:05",
+        "Ssid": "Grupo24h_5G",
+        "Rssi": -66
+      },
+      {
+        "Bssid": "14:ca:56:d3:ab:d9",
+        "Ssid": "Camila",
+        "Rssi": -77
+      },
+      {
+        "Bssid": "48:51:cf:00:d8:01",
+        "Ssid": "Grupo24h",
+        "Rssi": -63
+      },
+      {
+        "Bssid": "d8:31:39:22:22:6a",
+        "Ssid": "DOUG",
+        "Rssi": -67
+      },
+      {
+        "Bssid": "78:2e:56:f6:16:29",
+        "Ssid": "BOA VIAGEM BEACH",
+        "Rssi": -81
+      },
+      {
+        "Bssid": "58:72:c9:5e:d5:1a",
+        "Ssid": "Isadora",
+        "Rssi": -86
+      },
+      {
+        "Bssid": "e8:45:8b:a8:46:d8",
+        "Ssid": "VIVOFIBRA-WIFI6-46D8",
+        "Rssi": -73
+      },
+      {
+        "Bssid": "e8:45:8b:49:d5:a0",
+        "Ssid": "Ap 303",
+        "Rssi": -82
+      }
+    ],
+    "X": null,
+    "Y": null
+  },
+  {
+    "Name": "garagem",
+    "CreatedAt": "2026-10-02T22:12:47.0151617-03:00",
+    "Readings": [
+      {
+        "Bssid": "78:2e:56:f6:16:2a",
+        "Ssid": "BOA VIAGEM BEACH_5G",
+        "Rssi": -81
+      },
+      {
+        "Bssid": "74:fe:ce:57:c4:28",
+        "Ssid": "BBG_ROXANA",
+        "Rssi": -77
+      },
+      {
+        "Bssid": "48:51:cf:00:d8:01",
+        "Ssid": "Grupo24h",
+        "Rssi": -69
+      },
+      {
+        "Bssid": "78:2e:56:f6:16:29",
+        "Ssid": "BOA VIAGEM BEACH",
+        "Rssi": -81
+      },
+      {
+        "Bssid": "e8:45:8b:a8:46:df",
+        "Ssid": "VIVOFIBRA-WIFI6-46D8",
+        "Rssi": -86
+      },
+      {
+        "Bssid": "9c:63:5b:f8:4b:9a",
+        "Ssid": "APT_204",
+        "Rssi": -83
+      },
+      {
+        "Bssid": "80:ea:0b:84:20:81",
+        "Ssid": "MONTREAL",
+        "Rssi": -75
+      }
+    ],
+    "X": null,
+    "Y": null
+  },
+  {
+    "Name": "portao",
+    "CreatedAt": "2026-10-02T22:13:22.7726618-03:00",
+    "Readings": [
+      {
+        "Bssid": "d8:32:14:74:fd:45",
+        "Ssid": "THIAGO E LUNA_5G",
+        "Rssi": -84
+      },
+      {
+        "Bssid": "e8:45:8b:4f:3c:c0",
+        "Ssid": "VIVOFIBRA-701",
+        "Rssi": -79
+      },
+      {
+        "Bssid": "ec:be:dd:11:06:d4",
+        "Ssid": "MARIO 2G",
+        "Rssi": -81
+      },
+      {
+        "Bssid": "00:e0:4c:6f:88:68",
+        "Ssid": "DAYSE_SALA",
+        "Rssi": -79
+      },
+      {
+        "Bssid": "e8:65:d4:90:16:e1",
+        "Ssid": "APTO 302",
+        "Rssi": -77
+      },
+      {
+        "Bssid": "84:01:12:c3:92:79",
+        "Ssid": "Apt_1004",
+        "Rssi": -72
+      },
+      {
+        "Bssid": "ec:be:dd:10:21:44",
+        "Ssid": "EDUARDO_2G",
+        "Rssi": -80
+      },
+      {
+        "Bssid": "44:89:6d:13:af:ae",
+        "Ssid": "AL\u00CA",
+        "Rssi": -82
+      },
+      {
+        "Bssid": "f4:e8:4f:82:33:70",
+        "Ssid": "JanainaAlmeida-402",
+        "Rssi": -75
+      }
+    ],
+    "X": null,
+    "Y": null
+  },
+  {
+    "Name": "portao",
+    "CreatedAt": "2026-10-02T22:13:26.8285172-03:00",
+    "Readings": [
+      {
+        "Bssid": "74:fe:ce:55:db:18",
+        "Ssid": "Artur | VFIBRA ",
+        "Rssi": -72
+      },
+      {
+        "Bssid": "14:ca:56:51:3f:c4",
+        "Ssid": "Apt_202",
+        "Rssi": -83
+      },
+      {
+        "Bssid": "58:72:c9:5e:d5:1a",
+        "Ssid": "Isadora",
+        "Rssi": -81
+      },
+      {
+        "Bssid": "d8:9a:0d:58:25:dc",
+        "Ssid": "CLAROGV",
+        "Rssi": -86
+      },
+      {
+        "Bssid": "e8:45:8b:4f:3c:c0",
+        "Ssid": "VIVOFIBRA-701",
+        "Rssi": -68
+      },
+      {
+        "Bssid": "90:0a:62:af:ae:0f",
+        "Ssid": "VIVOFIBRA-WIFI6-AE01",
+        "Rssi": -69
+      },
+      {
+        "Bssid": "40:ae:30:b1:5b:0a",
+        "Ssid": "VIAWEB_PRIMOMAGALHAES_5G",
+        "Rssi": -85
+      },
+      {
+        "Bssid": "98:77:e7:09:63:ab",
+        "Ssid": "GABRIEL_1504",
+        "Rssi": -72
+      },
+      {
+        "Bssid": "98:2b:0a:27:cc:60",
+        "Ssid": "BBG-ANDRE ",
+        "Rssi": -74
+      },
+      {
+        "Bssid": "90:9f:22:b4:0f:51",
+        "Ssid": "VIVIANE",
+        "Rssi": -77
+      },
+      {
+        "Bssid": "84:01:12:c3:92:7a",
+        "Ssid": "Apt_1004",
+        "Rssi": -90
+      }
+    ],
+    "X": null,
+    "Y": null
+  },
+  {
+    "Name": "portao",
+    "CreatedAt": "2026-10-02T22:13:30.8718294-03:00",
+    "Readings": [
+      {
+        "Bssid": "74:fe:ce:55:db:18",
+        "Ssid": "Artur | VFIBRA ",
+        "Rssi": -69
+      },
+      {
+        "Bssid": "48:51:cf:00:d8:05",
+        "Ssid": "Grupo24h_5G",
+        "Rssi": -82
+      },
+      {
+        "Bssid": "14:ca:56:51:3f:c4",
+        "Ssid": "Apt_202",
+        "Rssi": -81
+      },
+      {
+        "Bssid": "44:89:6d:12:65:7f",
+        "Ssid": "VIVOFIBRA-WIFI6-801",
+        "Rssi": -75
+      },
+      {
+        "Bssid": "8c:dc:02:66:44:a3",
+        "Ssid": "LIVE TIM_0665_2G",
+        "Rssi": -82
+      },
+      {
+        "Bssid": "80:ea:0b:7e:d8:c1",
+        "Ssid": "ALINE",
+        "Rssi": -81
+      },
+      {
+        "Bssid": "40:ae:30:b1:5b:0a",
+        "Ssid": "VIAWEB_PRIMOMAGALHAES_5G",
+        "Rssi": -82
+      },
+      {
+        "Bssid": "ec:be:dd:10:21:44",
+        "Ssid": "EDUARDO_2G",
+        "Rssi": -78
+      }
+    ],
+    "X": null,
+    "Y": null
+  },
+  {
+    "Name": "M",
+    "CreatedAt": "2026-10-02T22:15:27.9615108-03:00",
+    "Readings": [
+      {
+        "Bssid": "74:fe:ce:57:c4:2a",
+        "Ssid": "BBG_ROXANA",
+        "Rssi": -87
+      },
+      {
+        "Bssid": "d8:32:14:74:fd:45",
+        "Ssid": "THIAGO E LUNA_5G",
+        "Rssi": -73
+      },
+      {
+        "Bssid": "74:fe:ce:57:c4:28",
+        "Ssid": "BBG_ROXANA",
+        "Rssi": -73
+      },
+      {
+        "Bssid": "48:51:cf:00:d8:01",
+        "Ssid": "Grupo24h",
+        "Rssi": -71
+      },
+      {
+        "Bssid": "d8:32:14:74:fd:41",
+        "Ssid": "THIAGO E LUNA",
+        "Rssi": -56
+      },
+      {
+        "Bssid": "78:2e:56:f6:16:29",
+        "Ssid": "BOA VIAGEM BEACH",
+        "Rssi": -79
+      },
+      {
+        "Bssid": "58:72:c9:50:99:c6",
+        "Ssid": "Cobertura_LIFE",
+        "Rssi": -84
+      },
+      {
+        "Bssid": "98:7e:ca:7e:67:de",
+        "Ssid": "Arthur 5ghz",
+        "Rssi": -85
+      },
+      {
+        "Bssid": "c8:47:8c:84:b6:eb",
+        "Ssid": "",
+        "Rssi": -79
+      },
+      {
+        "Bssid": "54:6c:ac:34:31:af",
+        "Ssid": "CemPista",
+        "Rssi": -79
+      },
+      {
+        "Bssid": "10:41:21:44:f5:f6",
+        "Ssid": "",
+        "Rssi": -74
+      },
+      {
+        "Bssid": "ec:be:dd:10:21:45",
+        "Ssid": "EDUARDO_5G",
+        "Rssi": -85
+      },
+      {
+        "Bssid": "cc:62:fe:b5:05:89",
+        "Ssid": "CARLINHA_5G",
+        "Rssi": -89
+      },
+      {
+        "Bssid": "c4:92:d9:46:a2:bc",
+        "Ssid": "Lua_2g",
+        "Rssi": -81
+      },
+      {
+        "Bssid": "9c:63:5b:f8:4b:9a",
+        "Ssid": "APT_204",
+        "Rssi": -77
+      }
+    ],
+    "X": null,
+    "Y": null
+  },
+  {
+    "Name": "M",
+    "CreatedAt": "2026-10-02T22:15:32.0311534-03:00",
+    "Readings": [
+      {
+        "Bssid": "74:fe:ce:55:db:18",
+        "Ssid": "Artur | VFIBRA ",
+        "Rssi": -56
+      },
+      {
+        "Bssid": "14:ca:56:53:ab:da",
+        "Ssid": "Camila",
+        "Rssi": -71
+      },
+      {
+        "Bssid": "d8:32:14:74:fd:45",
+        "Ssid": "THIAGO E LUNA_5G",
+        "Rssi": -83
+      },
+      {
+        "Bssid": "14:ca:56:d3:ab:d9",
+        "Ssid": "Camila",
+        "Rssi": -67
+      },
+      {
+        "Bssid": "28:11:ec:33:31:78",
+        "Ssid": "tio pepe 2023 5G",
+        "Rssi": -85
+      },
+      {
+        "Bssid": "74:fe:ce:55:db:1a",
+        "Ssid": "Artur | VFIBRA ",
+        "Rssi": -69
+      },
+      {
+        "Bssid": "68:d4:0c:63:15:ce",
+        "Ssid": "VIVOFIBRA-15C1-5G",
+        "Rssi": -71
+      },
+      {
+        "Bssid": "a0:b5:3c:3d:29:47",
+        "Ssid": "TIOPEPE_2G",
+        "Rssi": -77
+      },
+      {
+        "Bssid": "74:fe:ce:6f:5b:ea",
+        "Ssid": "Larissa  |  VFibra",
+        "Rssi": -83
+      },
+      {
+        "Bssid": "14:ca:56:d1:3f:c3",
+        "Ssid": "Apt_202",
+        "Rssi": -75
+      },
+      {
+        "Bssid": "d8:31:39:52:22:6b",
+        "Ssid": "DOUG",
+        "Rssi": -81
+      },
+      {
+        "Bssid": "ec:be:dd:10:21:45",
+        "Ssid": "EDUARDO_5G",
+        "Rssi": -84
+      },
+      {
+        "Bssid": "d0:59:19:c9:fd:e8",
+        "Ssid": "MARIA BONITA_2G",
+        "Rssi": -70
+      },
+      {
+        "Bssid": "8c:dc:02:66:44:a3",
+        "Ssid": "LIVE TIM_0665_2G",
+        "Rssi": -76
+      },
+      {
+        "Bssid": "84:01:12:c3:92:79",
+        "Ssid": "Apt_1004",
+        "Rssi": -80
+      },
+      {
+        "Bssid": "0c:01:4b:80:f6:24",
+        "Ssid": "PAULISTA_2G",
+        "Rssi": -76
+      },
+      {
+        "Bssid": "d0:59:19:c9:fd:ea",
+        "Ssid": "MARIA BONITA_5G",
+        "Rssi": -79
+      }
+    ],
+    "X": null,
+    "Y": null
+  },
+  {
+    "Name": "M",
+    "CreatedAt": "2026-10-02T22:15:36.0797751-03:00",
+    "Readings": [
+      {
+        "Bssid": "74:fe:ce:55:db:18",
+        "Ssid": "Artur | VFIBRA ",
+        "Rssi": -58
+      },
+      {
+        "Bssid": "74:fe:ce:57:c4:2a",
+        "Ssid": "BBG_ROXANA",
+        "Rssi": -85
+      },
+      {
+        "Bssid": "14:ca:56:53:ab:da",
+        "Ssid": "Camila",
+        "Rssi": -80
+      },
+      {
+        "Bssid": "d8:32:14:74:fd:45",
+        "Ssid": "THIAGO E LUNA_5G",
+        "Rssi": -79
+      },
+      {
+        "Bssid": "74:fe:ce:57:c4:28",
+        "Ssid": "BBG_ROXANA",
+        "Rssi": -76
+      },
+      {
+        "Bssid": "14:ca:56:d3:ab:d9",
+        "Ssid": "Camila",
+        "Rssi": -70
+      },
+      {
+        "Bssid": "48:51:cf:00:d8:01",
+        "Ssid": "Grupo24h",
+        "Rssi": -74
+      },
+      {
+        "Bssid": "d8:31:39:22:22:6a",
+        "Ssid": "DOUG",
+        "Rssi": -70
+      },
+      {
+        "Bssid": "d8:32:14:74:fd:41",
+        "Ssid": "THIAGO E LUNA",
+        "Rssi": -53
+      },
+      {
+        "Bssid": "54:6c:ac:34:31:b2",
+        "Ssid": "CemPista",
+        "Rssi": -77
+      },
+      {
+        "Bssid": "a0:b5:3c:3d:29:47",
+        "Ssid": "TIOPEPE_2G",
+        "Rssi": -75
+      },
+      {
+        "Bssid": "54:6c:ac:34:31:af",
+        "Ssid": "CemPista",
+        "Rssi": -79
+      },
+      {
+        "Bssid": "98:77:e7:bd:d6:7f",
+        "Ssid": "Rafael_2G",
+        "Rssi": -83
+      },
+      {
+        "Bssid": "c4:92:d9:46:a2:bc",
+        "Ssid": "Lua_2g",
+        "Rssi": -85
+      },
+      {
+        "Bssid": "ec:be:dd:10:21:44",
+        "Ssid": "EDUARDO_2G",
+        "Rssi": -76
+      }
+    ],
+    "X": null,
+    "Y": null
+  },
+  {
+    "Name": "esquerdo",
+    "CreatedAt": "2026-10-02T22:29:41.5985019-03:00",
+    "Readings": [
+      {
+        "Bssid": "28:11:ec:33:31:74",
+        "Ssid": "tio pepe 2023 2G",
+        "Rssi": -79
+      },
+      {
+        "Bssid": "e8:45:8b:1d:0e:fe",
+        "Ssid": "PACCOR 7",
+        "Rssi": -74
+      },
+      {
+        "Bssid": "98:2a:0a:39:21:c0",
+        "Ssid": "APT403",
+        "Rssi": -77
+      },
+      {
+        "Bssid": "a0:b5:3c:3d:29:47",
+        "Ssid": "TIOPEPE_2G",
+        "Rssi": -81
+      },
+      {
+        "Bssid": "88:81:b9:8a:47:7c",
+        "Ssid": "VDL",
+        "Rssi": -38
+      },
+      {
+        "Bssid": "88:81:b9:8a:47:80",
+        "Ssid": "VDL",
+        "Rssi": -49
+      },
+      {
+        "Bssid": "48:96:d9:55:45:e9",
+        "Ssid": "_1003",
+        "Rssi": -43
+      },
+      {
+        "Bssid": "e0:d3:62:36:ce:48",
+        "Ssid": "Daniel | VFIBRA ",
+        "Rssi": -60
+      },
+      {
+        "Bssid": "50:3d:d1:5a:dc:60",
+        "Ssid": "SOFIA",
+        "Rssi": -79
+      },
+      {
+        "Bssid": "48:96:d9:55:45:e8",
+        "Ssid": "_1003",
+        "Rssi": -39
+      },
+      {
+        "Bssid": "e0:d3:62:36:ce:4a",
+        "Ssid": "Daniel | VFIBRA ",
+        "Rssi": -81
+      }
+    ],
+    "X": null,
+    "Y": null
+  },
+  {
+    "Name": "esquerdo",
+    "CreatedAt": "2026-10-02T22:29:45.7117298-03:00",
+    "Readings": [
+      {
+        "Bssid": "48:ca:c6:fb:5e:20",
+        "Ssid": "CHARLIE E LOLA_2G",
+        "Rssi": -75
+      },
+      {
+        "Bssid": "00:eb:d8:77:f7:12",
+        "Ssid": "GRUPO_VESC_RITA\u0026GUELL",
+        "Rssi": -75
+      },
+      {
+        "Bssid": "98:ba:5f:b3:19:e6",
+        "Ssid": "J Diniz",
+        "Rssi": -82
+      },
+      {
+        "Bssid": "24:e4:ce:eb:19:b6",
+        "Ssid": "LIVE TIM_19B5_2G",
+        "Rssi": -78
+      },
+      {
+        "Bssid": "f4:e8:4f:85:23:14",
+        "Ssid": "Domingos",
+        "Rssi": -81
+      },
+      {
+        "Bssid": "88:81:b9:8a:47:7c",
+        "Ssid": "VDL",
+        "Rssi": -46
+      },
+      {
+        "Bssid": "88:81:b9:8a:47:80",
+        "Ssid": "VDL",
+        "Rssi": -60
+      },
+      {
+        "Bssid": "48:96:d9:55:45:e9",
+        "Ssid": "_1003",
+        "Rssi": -45
+      },
+      {
+        "Bssid": "50:3d:d1:5a:dc:60",
+        "Ssid": "SOFIA",
+        "Rssi": -71
+      },
+      {
+        "Bssid": "48:96:d9:55:45:e8",
+        "Ssid": "_1003",
+        "Rssi": -42
+      },
+      {
+        "Bssid": "e0:d3:62:36:ce:4a",
+        "Ssid": "Daniel | VFIBRA ",
+        "Rssi": -72
+      }
+    ],
+    "X": null,
+    "Y": null
+  },
+  {
+    "Name": "esquerdo",
+    "CreatedAt": "2026-10-02T22:29:49.7548153-03:00",
+    "Readings": [
+      {
+        "Bssid": "48:96:d9:55:45:e9",
+        "Ssid": "_1003",
+        "Rssi": -48
+      }
+    ],
+    "X": null,
+    "Y": null
+  },
+  {
+    "Name": "direito",
+    "CreatedAt": "2026-10-02T22:30:24.1556926-03:00",
+    "Readings": [
+      {
+        "Bssid": "e8:45:8b:76:e0:0f",
+        "Ssid": "CASA DA ROSA",
+        "Rssi": -90
+      },
+      {
+        "Bssid": "0c:ef:15:66:b7:7e",
+        "Ssid": "Escritorio1104",
+        "Rssi": -88
+      },
+      {
+        "Bssid": "44:89:6d:13:af:af",
+        "Ssid": "AL\u00CA",
+        "Rssi": -80
+      },
+      {
+        "Bssid": "00:eb:d8:77:f7:12",
+        "Ssid": "GRUPO_VESC_RITA\u0026GUELL",
+        "Rssi": -68
+      },
+      {
+        "Bssid": "98:2a:0a:39:21:c0",
+        "Ssid": "APT403",
+        "Rssi": -80
+      },
+      {
+        "Bssid": "d8:33:b7:ca:47:7e",
+        "Ssid": "CLARO_5GCA4778",
+        "Rssi": -88
+      },
+      {
+        "Bssid": "88:81:b9:8a:47:7c",
+        "Ssid": "VDL",
+        "Rssi": -35
+      },
+      {
+        "Bssid": "88:81:b9:8a:47:80",
+        "Ssid": "VDL",
+        "Rssi": -49
+      },
+      {
+        "Bssid": "48:96:d9:55:45:e9",
+        "Ssid": "_1003",
+        "Rssi": -38
+      },
+      {
+        "Bssid": "e0:d3:62:36:ce:48",
+        "Ssid": "Daniel | VFIBRA ",
+        "Rssi": -67
+      },
+      {
+        "Bssid": "48:96:d9:55:45:e8",
+        "Ssid": "_1003",
+        "Rssi": -40
+      },
+      {
+        "Bssid": "e0:d3:62:36:ce:4a",
+        "Ssid": "Daniel | VFIBRA ",
+        "Rssi": -78
+      }
+    ],
+    "X": null,
+    "Y": null
+  },
+  {
+    "Name": "direito",
+    "CreatedAt": "2026-10-02T22:30:28.2143844-03:00",
+    "Readings": [
+      {
+        "Bssid": "74:69:4a:cd:74:38",
+        "Ssid": "APTO 904-2.4G",
+        "Rssi": -67
+      },
+      {
+        "Bssid": "88:81:b9:8a:47:7c",
+        "Ssid": "VDL",
+        "Rssi": -39
+      },
+      {
+        "Bssid": "88:81:b9:8a:47:80",
+        "Ssid": "VDL",
+        "Rssi": -52
+      },
+      {
+        "Bssid": "48:96:d9:55:45:e9",
+        "Ssid": "_1003",
+        "Rssi": -32
+      },
+      {
+        "Bssid": "48:96:d9:55:45:e8",
+        "Ssid": "_1003",
+        "Rssi": -39
+      },
+      {
+        "Bssid": "e0:d3:62:36:ce:4a",
+        "Ssid": "Daniel | VFIBRA ",
+        "Rssi": -83
+      }
+    ],
+    "X": null,
+    "Y": null
+  },
+  {
+    "Name": "direito",
+    "CreatedAt": "2026-10-02T22:30:32.2593036-03:00",
+    "Readings": [
+      {
+        "Bssid": "d0:59:19:c9:fd:e8",
+        "Ssid": "MARIA BONITA_2G",
+        "Rssi": -74
+      },
+      {
+        "Bssid": "50:3d:d1:92:38:78",
+        "Ssid": "VFibra ( Yale Net ) 2.4 GHz",
+        "Rssi": -76
+      },
+      {
+        "Bssid": "f0:0c:51:51:21:78",
+        "Ssid": "FAMILIA_CARNEIRO",
+        "Rssi": -71
+      },
+      {
+        "Bssid": "0c:ef:15:66:b7:7e",
+        "Ssid": "Escritorio1104",
+        "Rssi": -86
+      },
+      {
+        "Bssid": "74:69:4a:cd:74:38",
+        "Ssid": "APTO 904-2.4G",
+        "Rssi": -63
+      },
+      {
+        "Bssid": "88:81:b9:8a:47:7c",
+        "Ssid": "VDL",
+        "Rssi": -42
+      },
+      {
+        "Bssid": "88:81:b9:8a:47:80",
+        "Ssid": "VDL",
+        "Rssi": -48
+      },
+      {
+        "Bssid": "48:96:d9:55:45:e9",
+        "Ssid": "_1003",
+        "Rssi": -33
+      },
+      {
+        "Bssid": "e0:d3:62:36:ce:48",
+        "Ssid": "Daniel | VFIBRA ",
+        "Rssi": -62
+      },
+      {
+        "Bssid": "48:96:d9:55:45:e8",
+        "Ssid": "_1003",
+        "Rssi": -41
+      },
+      {
+        "Bssid": "68:d4:0c:63:15:ce",
+        "Ssid": "VIVOFIBRA-15C1-5G",
+        "Rssi": -82
+      },
+      {
+        "Bssid": "e0:d3:62:36:ce:4a",
+        "Ssid": "Daniel | VFIBRA ",
+        "Rssi": -79
+      }
+    ],
+    "X": null,
+    "Y": null
+  },
+  {
+    "Name": "janela",
+    "CreatedAt": "2026-10-02T22:31:11.7250946-03:00",
+    "Readings": [
+      {
+        "Bssid": "28:11:ec:33:31:78",
+        "Ssid": "tio pepe 2023 5G",
+        "Rssi": -83
+      },
+      {
+        "Bssid": "f0:0c:51:51:21:79",
+        "Ssid": "FAMILIA_CARNEIRO",
+        "Rssi": -82
+      },
+      {
+        "Bssid": "48:ca:c6:fb:5e:21",
+        "Ssid": "CHARLIE E LOLA_5G",
+        "Rssi": -82
+      },
+      {
+        "Bssid": "b4:7c:a6:23:8c:93",
+        "Ssid": "Nasha1",
+        "Rssi": -87
+      },
+      {
+        "Bssid": "c4:0d:96:98:f6:e4",
+        "Ssid": "CLARO_5G98F6D8",
+        "Rssi": -89
+      },
+      {
+        "Bssid": "24:e4:ce:ea:56:97",
+        "Ssid": "Joao vitor tim_5G",
+        "Rssi": -85
+      },
+      {
+        "Bssid": "44:89:6d:13:af:ae",
+        "Ssid": "AL\u00CA",
+        "Rssi": -77
+      },
+      {
+        "Bssid": "e8:45:8b:ad:a3:30",
+        "Ssid": "Familia santos",
+        "Rssi": -71
+      },
+      {
+        "Bssid": "dc:62:79:d7:1e:8e",
+        "Ssid": "GarridoRestaurante",
+        "Rssi": -82
+      },
+      {
+        "Bssid": "48:4b:d4:83:d5:f0",
+        "Ssid": "Lisete_Paiva",
+        "Rssi": -87
+      },
+      {
+        "Bssid": "e8:45:8b:49:d5:a7",
+        "Ssid": "Ap 303",
+        "Rssi": -73
+      },
+      {
+        "Bssid": "3c:82:c0:68:51:cc",
+        "Ssid": "LinkWireless_2.4",
+        "Rssi": -62
+      },
+      {
+        "Bssid": "d0:59:19:c9:fd:e8",
+        "Ssid": "MARIA BONITA_2G",
+        "Rssi": -63
+      },
+      {
+        "Bssid": "f0:0c:51:51:21:78",
+        "Ssid": "FAMILIA_CARNEIRO",
+        "Rssi": -68
+      },
+      {
+        "Bssid": "74:69:4a:cd:74:38",
+        "Ssid": "APTO 904-2.4G",
+        "Rssi": -66
+      },
+      {
+        "Bssid": "d8:c6:78:d0:74:ff",
+        "Ssid": "VIVOFIBRA-74F8-5G",
+        "Rssi": -82
+      },
+      {
+        "Bssid": "24:e4:ce:eb:19:b6",
+        "Ssid": "LIVE TIM_19B5_2G",
+        "Rssi": -58
+      },
+      {
+        "Bssid": "40:ae:30:b1:5b:0a",
+        "Ssid": "VIAWEB_PRIMOMAGALHAES_5G",
+        "Rssi": -85
+      },
+      {
+        "Bssid": "88:81:b9:8a:47:7c",
+        "Ssid": "VDL",
+        "Rssi": -39
+      },
+      {
+        "Bssid": "bc:7f:7b:e1:60:0c",
+        "Ssid": "APTO 205",
+        "Rssi": -84
+      },
+      {
+        "Bssid": "88:81:b9:8a:47:80",
+        "Ssid": "VDL",
+        "Rssi": -57
+      },
+      {
+        "Bssid": "48:96:d9:55:45:e9",
+        "Ssid": "_1003",
+        "Rssi": -25
+      },
+      {
+        "Bssid": "48:96:d9:55:45:e8",
+        "Ssid": "_1003",
+        "Rssi": -22
+      },
+      {
+        "Bssid": "68:d4:0c:63:15:ce",
+        "Ssid": "VIVOFIBRA-15C1-5G",
+        "Rssi": -71
+      }
+    ],
+    "X": null,
+    "Y": null
+  },
+  {
+    "Name": "janela",
+    "CreatedAt": "2026-10-02T22:31:15.7702188-03:00",
+    "Readings": [
+      {
+        "Bssid": "28:11:ec:33:31:78",
+        "Ssid": "tio pepe 2023 5G",
+        "Rssi": -83
+      },
+      {
+        "Bssid": "c4:0d:96:98:f6:e4",
+        "Ssid": "CLARO_5G98F6D8",
+        "Rssi": -89
+      },
+      {
+        "Bssid": "e8:45:8b:49:d5:a7",
+        "Ssid": "Ap 303",
+        "Rssi": -83
+      },
+      {
+        "Bssid": "d0:59:19:c9:fd:e8",
+        "Ssid": "MARIA BONITA_2G",
+        "Rssi": -74
+      },
+      {
+        "Bssid": "44:89:6d:13:af:af",
+        "Ssid": "AL\u00CA",
+        "Rssi": -75
+      },
+      {
+        "Bssid": "74:69:4a:cd:74:38",
+        "Ssid": "APTO 904-2.4G",
+        "Rssi": -68
+      },
+      {
+        "Bssid": "00:eb:d8:77:f7:12",
+        "Ssid": "GRUPO_VESC_RITA\u0026GUELL",
+        "Rssi": -69
+      },
+      {
+        "Bssid": "d8:33:b7:ca:47:7e",
+        "Ssid": "CLARO_5GCA4778",
+        "Rssi": -86
+      },
+      {
+        "Bssid": "88:81:b9:8a:47:7c",
+        "Ssid": "VDL",
+        "Rssi": -43
+      },
+      {
+        "Bssid": "bc:7f:7b:e1:60:0c",
+        "Ssid": "APTO 205",
+        "Rssi": -84
+      },
+      {
+        "Bssid": "88:81:b9:8a:47:80",
+        "Ssid": "VDL",
+        "Rssi": -60
+      },
+      {
+        "Bssid": "48:96:d9:55:45:e9",
+        "Ssid": "_1003",
+        "Rssi": -31
+      },
+      {
+        "Bssid": "48:96:d9:55:45:e8",
+        "Ssid": "_1003",
+        "Rssi": -30
+      }
+    ],
+    "X": null,
+    "Y": null
+  },
+  {
+    "Name": "janela",
+    "CreatedAt": "2026-10-02T22:31:19.8484513-03:00",
+    "Readings": [
+      {
+        "Bssid": "84:0b:bb:18:ce:b8",
+        "Ssid": "Santos",
+        "Rssi": -76
+      },
+      {
+        "Bssid": "14:ca:56:53:ab:da",
+        "Ssid": "Camila",
+        "Rssi": -83
+      },
+      {
+        "Bssid": "80:2d:1a:51:fc:33",
+        "Ssid": "APT2602_Mesh",
+        "Rssi": -84
+      },
+      {
+        "Bssid": "d8:9a:0d:58:25:dc",
+        "Ssid": "CLAROGV",
+        "Rssi": -87
+      },
+      {
+        "Bssid": "10:98:5f:9d:b9:9f",
+        "Ssid": "DONA MARIA",
+        "Rssi": -76
+      },
+      {
+        "Bssid": "8c:dc:02:66:44:a3",
+        "Ssid": "LIVE TIM_0665_2G",
+        "Rssi": -72
+      },
+      {
+        "Bssid": "48:ca:c6:fb:5e:21",
+        "Ssid": "CHARLIE E LOLA_5G",
+        "Rssi": -85
+      },
+      {
+        "Bssid": "24:e4:ce:ea:56:97",
+        "Ssid": "Joao vitor tim_5G",
+        "Rssi": -84
+      },
+      {
+        "Bssid": "44:89:6d:13:af:ae",
+        "Ssid": "AL\u00CA",
+        "Rssi": -77
+      },
+      {
+        "Bssid": "e8:45:8b:49:d5:a7",
+        "Ssid": "Ap 303",
+        "Rssi": -73
+      },
+      {
+        "Bssid": "98:7e:ca:7e:67:de",
+        "Ssid": "Arthur 5ghz",
+        "Rssi": -77
+      },
+      {
+        "Bssid": "44:89:6d:13:af:af",
+        "Ssid": "AL\u00CA",
+        "Rssi": -63
+      },
+      {
+        "Bssid": "d8:33:b7:ca:47:7e",
+        "Ssid": "CLARO_5GCA4778",
+        "Rssi": -73
+      },
+      {
+        "Bssid": "cc:ba:bd:1d:7c:50",
+        "Ssid": "Fabio | VFIBRA ",
+        "Rssi": -72
+      },
+      {
+        "Bssid": "88:81:b9:8a:47:7c",
+        "Ssid": "VDL",
+        "Rssi": -42
+      },
+      {
+        "Bssid": "88:81:b9:8a:47:80",
+        "Ssid": "VDL",
+        "Rssi": -57
+      },
+      {
+        "Bssid": "48:96:d9:55:45:e9",
+        "Ssid": "_1003",
+        "Rssi": -31
+      },
+      {
+        "Bssid": "e0:d3:62:36:ce:48",
+        "Ssid": "Daniel | VFIBRA ",
+        "Rssi": -70
+      },
+      {
+        "Bssid": "48:96:d9:55:45:e8",
+        "Ssid": "_1003",
+        "Rssi": -26
+      },
+      {
+        "Bssid": "68:d4:0c:63:15:ce",
+        "Ssid": "VIVOFIBRA-15C1-5G",
+        "Rssi": -72
+      }
+    ],
+    "X": null,
+    "Y": null
+  },
+  {
+    "Name": "quarto",
+    "CreatedAt": "2026-10-02T22:31:40.6034855-03:00",
+    "Readings": [
+      {
+        "Bssid": "84:01:12:c3:92:7a",
+        "Ssid": "Apt_1004",
+        "Rssi": -86
+      },
+      {
+        "Bssid": "a0:b5:3c:26:6d:72",
+        "Ssid": "ADEMIR BORGES_2G",
+        "Rssi": -86
+      },
+      {
+        "Bssid": "74:69:4a:cd:74:38",
+        "Ssid": "APTO 904-2.4G",
+        "Rssi": -70
+      },
+      {
+        "Bssid": "88:81:b9:8a:47:80",
+        "Ssid": "VDL",
+        "Rssi": -55
+      },
+      {
+        "Bssid": "48:96:d9:55:45:e9",
+        "Ssid": "_1003",
+        "Rssi": -50
+      },
+      {
+        "Bssid": "48:96:d9:55:45:e8",
+        "Ssid": "_1003",
+        "Rssi": -47
+      },
+      {
+        "Bssid": "68:d4:0c:63:15:ce",
+        "Ssid": "VIVOFIBRA-15C1-5G",
+        "Rssi": -87
+      }
+    ],
+    "X": null,
+    "Y": null
+  },
+  {
+    "Name": "quarto",
+    "CreatedAt": "2026-10-02T22:31:44.6597389-03:00",
+    "Readings": [
+      {
+        "Bssid": "d0:59:19:c9:fd:ea",
+        "Ssid": "MARIA BONITA_5G",
+        "Rssi": -90
+      },
+      {
+        "Bssid": "d0:59:19:c9:fd:e8",
+        "Ssid": "MARIA BONITA_2G",
+        "Rssi": -74
+      },
+      {
+        "Bssid": "0c:ef:15:66:b7:7e",
+        "Ssid": "Escritorio1104",
+        "Rssi": -86
+      },
+      {
+        "Bssid": "d8:c6:78:d0:74:ff",
+        "Ssid": "VIVOFIBRA-74F8-5G",
+        "Rssi": -79
+      },
+      {
+        "Bssid": "e8:45:8b:76:e0:08",
+        "Ssid": "CASA DA ROSA",
+        "Rssi": -77
+      },
+      {
+        "Bssid": "88:81:b9:8a:47:80",
+        "Ssid": "VDL",
+        "Rssi": -61
+      },
+      {
+        "Bssid": "48:96:d9:55:45:e9",
+        "Ssid": "_1003",
+        "Rssi": -47
+      },
+      {
+        "Bssid": "50:3d:d1:5a:dc:60",
+        "Ssid": "SOFIA",
+        "Rssi": -63
+      },
+      {
+        "Bssid": "48:96:d9:55:45:e8",
+        "Ssid": "_1003",
+        "Rssi": -52
+      },
+      {
+        "Bssid": "68:d4:0c:63:15:ce",
+        "Ssid": "VIVOFIBRA-15C1-5G",
+        "Rssi": -78
+      },
+      {
+        "Bssid": "e0:d3:62:36:ce:4a",
+        "Ssid": "Daniel | VFIBRA ",
+        "Rssi": -77
+      }
+    ],
+    "X": null,
+    "Y": null
+  },
+  {
+    "Name": "quarto",
+    "CreatedAt": "2026-10-02T22:31:48.7071222-03:00",
+    "Readings": [
+      {
+        "Bssid": "3c:82:c0:68:51:cc",
+        "Ssid": "LinkWireless_2.4",
+        "Rssi": -78
+      },
+      {
+        "Bssid": "e0:d3:62:60:4a:72",
+        "Ssid": "PAULOO",
+        "Rssi": -76
+      },
+      {
+        "Bssid": "74:69:4a:cd:74:38",
+        "Ssid": "APTO 904-2.4G",
+        "Rssi": -72
+      },
+      {
+        "Bssid": "e8:45:8b:1d:0e:fe",
+        "Ssid": "PACCOR 7",
+        "Rssi": -59
+      },
+      {
+        "Bssid": "40:ae:30:b1:5b:0a",
+        "Ssid": "VIAWEB_PRIMOMAGALHAES_5G",
+        "Rssi": -79
+      },
+      {
+        "Bssid": "88:81:b9:8a:47:7c",
+        "Ssid": "VDL",
+        "Rssi": -42
+      },
+      {
+        "Bssid": "88:81:b9:8a:47:80",
+        "Ssid": "VDL",
+        "Rssi": -56
+      },
+      {
+        "Bssid": "48:96:d9:55:45:e9",
+        "Ssid": "_1003",
+        "Rssi": -47
+      },
+      {
+        "Bssid": "e0:d3:62:36:ce:48",
+        "Ssid": "Daniel | VFIBRA ",
+        "Rssi": -65
+      },
+      {
+        "Bssid": "e0:d3:62:36:ce:4a",
+        "Ssid": "Daniel | VFIBRA ",
+        "Rssi": -84
+      }
+    ],
+    "X": null,
+    "Y": null
+  }
+]
