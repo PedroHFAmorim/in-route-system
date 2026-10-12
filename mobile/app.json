@@ -19,7 +19,7 @@
         "NEARBY_WIFI_DEVICES"
       ],
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#0F1B3D",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
@@ -33,6 +33,14 @@
       "eas": {
         "projectId": "df28e268-5374-49db-a4fb-fb0abb7d6016"
       }
-    }
+    },
+    "plugins": [
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "O In-Route usa sua localização para listar lugares próximos e orientar a navegação."
+        }
+      ]
+    ]
   }
 }
