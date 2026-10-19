@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { AppState, BackHandler, Linking, PermissionsAndroid, Platform, Text, View } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as Location from 'expo-location';
 import { StatusBar } from 'expo-status-bar';
 import { Btn, Header } from './src/ui.tsx';
@@ -22,7 +23,8 @@ async function checkAccess(): Promise<Access> {
   if (Platform.OS !== 'android') return null;
   const perms = [PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION];
   if (Platform.Version >= 33) perms.push(PermissionsAndroid.PERMISSIONS.NEARBY_WIFI_DEVICES);
-  const res = await PermissionsAndroid.requestMultiple(perms);
+  const ble = Platform.Version >= 31 ? [PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN] : [];
+  const res = await PermissionsAndroid.requestMultiple([...perms, ...ble]); // BLE is optional: not checked below
   if (!perms.every((p) => res[p] === PermissionsAndroid.RESULTS.GRANTED)) return 'denied';
   return (await Location.hasServicesEnabledAsync()) ? null : 'gps-off';
 }
@@ -55,8 +57,9 @@ export default function App() {
 
   const top = stack[stack.length - 1];
   return (
-    <View style={{ flex: 1 }}>
-      <StatusBar style="dark" />
+    <SafeAreaProvider>
+      <View style={{ flex: 1 }}>
+        <StatusBar style="dark" />
       <Header title={TITLES[top.name]} onBack={stack.length > 1 ? pop : undefined} />
       {access && (
         <View style={{ backgroundColor: '#fff3cd', borderColor: '#ffe69c', borderWidth: 1, padding: 12, gap: 8 }}>
@@ -76,6 +79,7 @@ export default function App() {
       {top.name === 'home' && <Home nav={nav} />}
       {top.name === 'wizard' && <PlaceWizard key={stack.length} nav={nav} {...top.params} />}
       {top.name === 'navigate' && <Navigate placeId={top.params.placeId} />}
-    </View>
+      </View>
+    </SafeAreaProvider>
   );
 }

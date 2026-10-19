@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue'
-import { bbox, polyCells, resizeMap, simplify, type Block, type Pt } from './grid.ts'
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
+import { bbox, insertVert, polyCells, removeVert, resizeMap, simplify, type Block, type Pt } from './grid.ts'
 import { KINDS, newId, type Place, type View } from './store.ts'
 
 const props = defineProps<{ place: Place; floorId: string }>()
@@ -15,6 +15,8 @@ const TOOLS: [Tool, string][] = [['draw', 'Desenhar'], ['rect', 'Retângulo'], [
 const tool = ref<Tool>('draw')
 const selId = ref('')
 const sel = computed(() => map.value.blocks.find((b) => b.id === selId.value))
+const act = ref(-1) // vértice ativo do polígono selecionado
+watch(selId, () => (act.value = -1))
 const zoom = ref(1)
 const newKind = ref('loja')
 const scroller = ref<HTMLElement>()
@@ -33,13 +35,16 @@ function undo() {
 function onKey(e: KeyboardEvent) {
   if (['INPUT', 'TEXTAREA', 'SELECT'].includes((e.target as HTMLElement).tagName)) return
   if (e.ctrlKey && e.key.toLowerCase() === 'z') { e.preventDefault(); undo() }
-  else if (!pts.value.length) return
+  else if (!pts.value.length) {
+    if (e.key === 'Escape' || e.key === 'Enter') salvar()
+    else if ((e.key === 'Delete' || e.key === 'Backspace') && act.value >= 0) { e.preventDefault(); delVert(act.value) }
+  }
   else if (e.key === 'Enter') fechar()
   else if (e.key === 'Escape') pts.value = []
   else if (e.key === 'Backspace') { e.preventDefault(); pts.value.pop() }
 }
-onMounted(() => { window.addEventListener('keydown', onKey); window.addEventListener('resize', fit); fit() })
-onUnmounted(() => { window.removeEventListener('keydown', onKey); window.removeEventListener('resize', fit) })
+onMounted(() => { window.addEventListener('keydown', onKey); window.addEventListener('resize', fit); window.addEventListener('paste', colar); fit() })
+onUnmounted(() => { window.removeEventListener('keydown', onKey); window.removeEventListener('resize', fit); window.removeEventListener('paste', colar) })
 
 // ---- zoom / pan ----
 const setZoom = (z: number) => (zoom.value = Math.min(6, Math.max(0.1, z)))
@@ -63,6 +68,15 @@ function ptAt(e: PointerEvent): Pt {
   const r = svg.value!.getBoundingClientRect()
   return { x: ((e.clientX - r.left) / r.width) * map.value.cols, y: ((e.clientY - r.top) / r.height) * map.value.rows }
 }
+// encaixa no vértice existente mais próximo (até 8 px de tela): lojas vizinhas compartilham cantos
+function snapPt(p: Pt): Pt {
+  let best = p, d = 8 * px.value
+  for (const b of map.value.blocks) for (const v of b.poly ?? []) {
+    const dv = Math.hypot(v.x - p.x, v.y - p.y)
+    if (dv < d) { d = dv; best = { ...v } }
+  }
+  return best
+}
 const recalc = (b: Block) => { if (b.poly) b.cells = polyCells(b.poly, map.value.cols, map.value.rows) }
 
 function down(e: PointerEvent) {
@@ -72,20 +86,46 @@ function down(e: PointerEvent) {
     return
   }
   if (e.button !== 0) return
-  if (tool.value === 'select') { selId.value = ''; return }
-  const p = ptAt(e)
+  if (tool.value === 'select') { salvar(); return }
+  const p = snapPt(ptAt(e))
   if (tool.value === 'rect' || !pts.value.length) { press = { cx: e.clientX, cy: e.clientY, p, free: false }; return }
   const a = pts.value[0]
   if (a && pts.value.length >= 3 && Math.hypot(a.x - p.x, a.y - p.y) < 8 * px.value) fechar()
   else pts.value.push(p)
 }
 function polyDown(e: PointerEvent, b: Block, vert = -1) {
-  if (tool.value !== 'select' || e.button !== 0) return
+  if ((vert < 0 && tool.value !== 'select') || e.button !== 0) return
   e.stopPropagation()
   svg.value!.setPointerCapture(e.pointerId)
   selId.value = b.id
+  act.value = vert
   if (b.poly) drag = { vert, last: ptAt(e), moved: false }
 }
+// alça do meio: insere o vértice e segue arrastando como vértice normal
+function midDown(e: PointerEvent, i: number) {
+  if (e.button !== 0 || !sel.value?.poly) return
+  e.stopPropagation()
+  svg.value!.setPointerCapture(e.pointerId)
+  snap()
+  const p = ptAt(e)
+  sel.value.poly = insertVert(sel.value.poly, i + 1, p)
+  act.value = i + 1
+  drag = { vert: i + 1, last: p, moved: true }
+}
+function delVert(i: number) {
+  const b = sel.value
+  if (!b?.poly || b.poly.length <= 3) return
+  snap()
+  b.poly = removeVert(b.poly, i)
+  act.value = -1
+  drag = null
+  recalc(b)
+}
+const showHandles = computed(() => !!sel.value?.poly && !pts.value.length && !live.value && tool.value === 'select')
+const mids = computed(() => {
+  const p = sel.value?.poly ?? []
+  return p.map((a, i) => { const b = p[(i + 1) % p.length]; return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 } })
+})
 function move(e: PointerEvent) {
   if (pan) { scroller.value!.scrollLeft = pan.sl - (e.clientX - pan.x); scroller.value!.scrollTop = pan.st - (e.clientY - pan.y); return }
   const p = ptAt(e)
@@ -93,7 +133,7 @@ function move(e: PointerEvent) {
   if (press) {
     const d = Math.hypot(e.clientX - press.cx, e.clientY - press.cy)
     if (tool.value === 'rect') {
-      if (d > 4) { live.value = true; const a = press.p; pts.value = [a, { x: p.x, y: a.y }, p, { x: a.x, y: p.y }] }
+      if (d > 4) { live.value = true; const a = press.p, c = snapPt(p); pts.value = [a, { x: c.x, y: a.y }, c, { x: a.x, y: c.y }] }
     } else {
       if (!press.free && d > 4) { press.free = true; live.value = true; pts.value = [press.p] }
       const l = pts.value[pts.value.length - 1]
@@ -142,10 +182,23 @@ function fechar() {
   const b: Block = { id: newId(), name: `${k.label} ${n}`, kind: newKind.value, color: k.color, poly, cells: polyCells(poly, map.value.cols, map.value.rows), samples: [] }
   map.value.blocks.push(b)
   selId.value = b.id
+  act.value = -1
   pts.value = []
+  if (tool.value !== 'select') { voltar = tool.value; tool.value = 'select' } // ajusta a área recém-desenhada; Salvar volta a desenhar
 }
 
 // ---- áreas ----
+const salva = ref('')
+let voltar: Tool | '' = ''
+// tudo já persiste no localStorage a cada mudança; salvar = encerrar a edição p/ desenhar a próxima
+function salvar() {
+  if (!sel.value) return
+  salva.value = sel.value.name
+  setTimeout(() => (salva.value = ''), 2000)
+  selId.value = ''
+  act.value = -1
+  if (voltar) { tool.value = voltar; voltar = '' }
+}
 function trocaKind() {
   if (sel.value?.kind) sel.value.color = KINDS[sel.value.kind].color
 }
@@ -187,8 +240,18 @@ function carregarPlanta(e: Event) {
   const input = e.target as HTMLInputElement
   const f = input.files?.[0]
   input.value = ''
-  if (!f) return
+  if (f) usarPlanta(f)
+}
+// arrastar ou colar (Ctrl+V) a imagem: não depende do seletor de arquivos
+const soltar = (e: DragEvent) => { const f = e.dataTransfer?.files[0]; if (f) usarPlanta(f) }
+function colar(e: ClipboardEvent) {
+  const f = [...(e.clipboardData?.files ?? [])].find((x) => x.type.startsWith('image/'))
+  if (f) { e.preventDefault(); usarPlanta(f) }
+}
+function usarPlanta(f: File) {
+  if (!f.type.startsWith('image/')) { alert('Use uma imagem (PNG, JPG…). PDF: exporte a página como imagem antes.'); return }
   const img = new Image()
+  img.onerror = () => alert('Não foi possível ler a imagem.')
   img.onload = () => {
     const s = Math.min(1, 2000 / Math.max(img.width, img.height)) // reduz p/ caber no localStorage
     const cv = document.createElement('canvas')
@@ -216,7 +279,7 @@ function carregarPlanta(e: Event) {
           <option v-for="f in place.floors" :key="f.id" :value="f.id">{{ f.name }}</option>
         </select>
         <div class="btn-group btn-group-sm">
-          <button v-for="[t, l] in TOOLS" :key="t" class="btn" :class="tool === t ? 'btn-primary' : 'btn-outline-primary'" @click="tool = t; pts = []; press = null; live = false">{{ l }}</button>
+          <button v-for="[t, l] in TOOLS" :key="t" class="btn" :class="tool === t ? 'btn-primary' : 'btn-outline-primary'" @click="tool = t; pts = []; press = null; live = false; voltar = ''">{{ l }}</button>
         </div>
         <div class="btn-group btn-group-sm">
           <button class="btn btn-outline-secondary" title="Diminuir" @click="setZoom(zoom / 1.25)">−</button>
@@ -225,8 +288,10 @@ function carregarPlanta(e: Event) {
         </div>
         <span class="small text-muted">{{ Math.round(zoom * 100) }}%</span>
         <button class="btn btn-sm btn-outline-secondary" :disabled="!undoStack.length" @click="undo">Desfazer</button>
+        <button v-if="sel" class="btn btn-sm btn-success" title="Enter" @click="salvar">✓ Salvar área</button>
+        <span v-else-if="salva" class="small text-success">“{{ salva }}” salva. Desenhe a próxima área.</span>
       </div>
-      <div ref="scroller" class="border bg-white ed-scroll" style="overflow: auto" @wheel="onWheel">
+      <div ref="scroller" class="border bg-white ed-scroll" style="overflow: auto" @wheel="onWheel" @dragover.prevent @drop.prevent="soltar">
         <svg
           ref="svg" :width="map.cols * CELL * zoom" :height="map.rows * CELL * zoom" :viewBox="`0 0 ${map.cols} ${map.rows}`"
           :style="{ display: 'block', touchAction: 'none', cursor: tool === 'move' ? 'grab' : tool === 'select' ? 'default' : 'crosshair' }"
@@ -241,8 +306,9 @@ function carregarPlanta(e: Event) {
             </g>
           </template>
           <text v-for="l in labels" :key="l.id" :x="l.x" :y="l.y" :font-size="l.f" text-anchor="middle" dominant-baseline="central" fill="#222" pointer-events="none" style="user-select: none">{{ l.text }}</text>
-          <template v-if="tool === 'select' && sel?.poly">
-            <circle v-for="(v, i) in sel.poly" :key="i" :cx="v.x" :cy="v.y" :r="4 * px" fill="#fff" stroke="#2557D6" :stroke-width="2 * px" style="cursor: pointer" @pointerdown="polyDown($event, sel!, i)" />
+          <template v-if="showHandles && sel?.poly">
+            <circle v-for="(v, i) in mids" :key="'m' + i" :cx="v.x" :cy="v.y" :r="3.5 * px" fill="#fff" fill-opacity=".6" stroke="#2557D6" stroke-opacity=".6" :stroke-width="1.5 * px" style="cursor: crosshair" @pointerdown="midDown($event, i)" @dblclick.stop />
+            <circle v-for="(v, i) in sel.poly" :key="i" :cx="v.x" :cy="v.y" :r="5 * px" :fill="i === act ? '#2557D6' : '#fff'" stroke="#2557D6" :stroke-width="2 * px" style="cursor: grab" @pointerdown="polyDown($event, sel!, i)" @contextmenu.prevent.stop="delVert(i)" @dblclick.stop="delVert(i)" />
           </template>
           <template v-if="pts.length">
             <polyline :points="pts2([...pts, ...(mouse ? [mouse] : [])])" fill="none" stroke="#2557D6" :stroke-width="2 * px" pointer-events="none" />
@@ -251,7 +317,7 @@ function carregarPlanta(e: Event) {
           </template>
         </svg>
       </div>
-      <div class="small text-muted mt-1" style="flex: none">Ctrl+roda: zoom · botão do meio: arrastar · Ctrl+Z: desfazer · Desenhar: arraste p/ traço livre ou clique p/ vértices (fechar no 1º ponto, duplo clique ou Enter) · Retângulo: arraste · Esc cancela · Backspace remove o último</div>
+      <div class="small text-muted mt-1" style="flex: none">Ctrl+roda: zoom · botão do meio: arrastar · Ctrl+Z: desfazer · Desenhar: arraste p/ traço livre ou clique p/ vértices (fechar no 1º ponto, duplo clique ou Enter) · Retângulo: arraste · Esc cancela (ou desmarca) · Backspace remove o último · Polígono selecionado: arraste os pontos; arraste o ponto do meio de uma aresta para criar um vértice; botão direito ou duplo clique remove o ponto; Delete remove o ponto ativo</div>
     </div>
 
     <div class="col-lg-3 ed-col ed-side">
@@ -262,7 +328,7 @@ function carregarPlanta(e: Event) {
           <input v-model.number="floor.bg.opacity" type="range" min="0" max="1" step=".05" class="form-range mt-2" />
           <button class="btn btn-sm btn-outline-danger" @click="floor.bg = undefined">Remover planta</button>
         </template>
-        <div class="form-text">Ao importar, o mapa se ajusta à proporção da imagem.</div>
+        <div class="form-text">Ou arraste a imagem para o mapa, ou cole com Ctrl+V. O mapa se ajusta à proporção da imagem.</div>
       </div></div>
 
       <div class="card"><div class="card-body">
@@ -283,9 +349,10 @@ function carregarPlanta(e: Event) {
           <select v-model="sel.kind" class="form-select form-select-sm mb-2" @change="trocaKind"><option v-for="(k, id) in KINDS" :key="id" :value="id">{{ k.label }}</option></select>
           <label class="form-label small mb-0">Cor</label>
           <input v-model="sel.color" type="color" class="form-control form-control-color mb-2" />
-          <button class="btn btn-sm btn-outline-danger" @click="excluirArea">Excluir área</button>
+          <div class="d-flex gap-2"><button class="btn btn-sm btn-success" @click="salvar">✓ Salvar área</button>
+          <button class="btn btn-sm btn-outline-danger" @click="excluirArea">Excluir área</button></div>
         </template>
-        <div class="form-text mt-2">Selecionar: clique na área, arraste os pontos para ajustar ou o corpo para mover. Áreas do editor de grade aparecem, mas só se editam lá.</div>
+        <div class="form-text mt-2">Selecionar: clique na área (ou na lista); arraste os pontos para ajustar, o ponto do meio para criar um vértice, o corpo para mover; botão direito/duplo clique remove o ponto; Delete remove o ponto ativo. Áreas do editor de grade aparecem, mas só se editam lá.</div>
       </div></div>
     </div>
   </div>

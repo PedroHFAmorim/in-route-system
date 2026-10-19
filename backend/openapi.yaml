@@ -1,0 +1,106 @@
+openapi: 3.0.3
+info:
+  title: In-Route API
+  version: 1.0.0
+  description: REST backend for the In-Route indoor mapping app. Places are stored in PostgreSQL; the map (blocks/cells/samples) is a JSONB document.
+servers:
+  - url: http://localhost:3000
+    description: Local
+  - url: https://<your-service>.up.railway.app
+    description: Railway
+paths:
+  /health:
+    get:
+      summary: Liveness probe
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { type: object, properties: { ok: { type: boolean } } } } } }
+  /bootstrap:
+    get:
+      summary: Everything the app needs on load (places + types)
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  places: { type: array, items: { $ref: '#/components/schemas/Place' } }
+                  types: { type: array, items: { $ref: '#/components/schemas/Type' } }
+  /places:
+    get:
+      summary: List places (newest first)
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/Place' } } } } }
+    post:
+      summary: Create/upsert a place (id optional; generated when absent)
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/Place' } } }
+      responses:
+        '201': { description: Created, content: { application/json: { schema: { $ref: '#/components/schemas/Place' } } } }
+        '400': { $ref: '#/components/responses/BadRequest' }
+  /places/{id}:
+    get:
+      summary: Get a place
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/Place' } } } }
+        '404': { $ref: '#/components/responses/NotFound' }
+    put:
+      summary: Upsert a place by id
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/Place' } } }
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/Place' } } } }
+        '400': { $ref: '#/components/responses/BadRequest' }
+    delete:
+      summary: Delete a place
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      responses:
+        '204': { description: Deleted }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /types:
+    get:
+      summary: List place types
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/Type' } } } } }
+    post:
+      summary: Ensure a type exists (idempotent by name, case-insensitive)
+      requestBody:
+        required: true
+        content: { application/json: { schema: { type: object, required: [name], properties: { name: { type: string } } } } }
+      responses:
+        '200': { description: Existing, content: { application/json: { schema: { $ref: '#/components/schemas/Type' } } } }
+        '201': { description: Created, content: { application/json: { schema: { $ref: '#/components/schemas/Type' } } } }
+        '400': { $ref: '#/components/responses/BadRequest' }
+components:
+  responses:
+    BadRequest: { description: Invalid body, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+    NotFound: { description: Not found, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+  schemas:
+    Error:
+      type: object
+      properties: { error: { type: string } }
+    Type:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+    Place:
+      type: object
+      required: [name]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        typeId: { type: string }
+        lat: { type: number, nullable: true }
+        lng: { type: number, nullable: true }
+        address: { type: string, nullable: true }
+        createdAt: { type: string, format: date-time }
+        map:
+          type: object
+          nullable: true
+          description: Floor map. blocks[] each hold cells[] and scan samples[]. Stored as JSONB.

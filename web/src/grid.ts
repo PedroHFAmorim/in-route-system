@@ -74,3 +74,8 @@ export function simplify(pts: Pt[], tol: number): Pt[] {
   if (max <= tol) return [a, b]
   return [...simplify(pts.slice(0, k + 1), tol).slice(0, -1), ...simplify(pts.slice(k), tol)]
 }
+
+// Insere vértice em i (imutável).
+export const insertVert = (poly: Pt[], i: number, p: Pt): Pt[] => [...poly.slice(0, i), p, ...poly.slice(i)]
+// Remove o vértice i; mantém o polígono se ficaria com < 3.
+export const removeVert = (poly: Pt[], i: number): Pt[] => (poly.length > 3 ? poly.filter((_, k) => k !== i) : poly)

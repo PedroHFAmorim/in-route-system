@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Mobs2\\Desktop\\in-route-system\\location-find\\location-find\\location-find.csproj": {}
+    "C:\\PH Projetos\\in-route-system\\location-find\\location-find\\location-find.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Mobs2\\Desktop\\in-route-system\\location-find\\location-find\\location-find.csproj": {
+    "C:\\PH Projetos\\in-route-system\\location-find\\location-find\\location-find.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Mobs2\\Desktop\\in-route-system\\location-find\\location-find\\location-find.csproj",
+        "projectUniqueName": "C:\\PH Projetos\\in-route-system\\location-find\\location-find\\location-find.csproj",
         "projectName": "location-find",
-        "projectPath": "C:\\Users\\Mobs2\\Desktop\\in-route-system\\location-find\\location-find\\location-find.csproj",
+        "projectPath": "C:\\PH Projetos\\in-route-system\\location-find\\location-find\\location-find.csproj",
         "packagesPath": "C:\\Users\\Mobs2\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Mobs2\\Desktop\\in-route-system\\location-find\\location-find\\obj\\",
+        "outputPath": "C:\\PH Projetos\\in-route-system\\location-find\\location-find\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages",

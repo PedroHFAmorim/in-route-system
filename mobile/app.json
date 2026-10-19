@@ -16,7 +16,10 @@
         "ACCESS_COARSE_LOCATION",
         "ACCESS_WIFI_STATE",
         "CHANGE_WIFI_STATE",
-        "NEARBY_WIFI_DEVICES"
+        "NEARBY_WIFI_DEVICES",
+        "BLUETOOTH_SCAN",
+        "BLUETOOTH",
+        "BLUETOOTH_ADMIN"
       ],
       "adaptiveIcon": {
         "backgroundColor": "#0F1B3D",

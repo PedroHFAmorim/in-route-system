@@ -1,9 +1,12 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Alert, FlatList, RefreshControl, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import * as DocumentPicker from 'expo-document-picker';
+import { File } from 'expo-file-system';
 import * as Location from 'expo-location';
 import type { Nav } from '../../App.tsx';
 import { formatDist, haversineM } from '../logic.ts';
-import { deletePlace, hasNavigableMap, load, type Place, type PlaceType } from '../store.ts';
+import { deletePlace, hasNavigableMap, importPlaces, load, type Place, type PlaceType } from '../store.ts';
 import { Badge, Btn, Card, C, FS, SP } from '../ui.tsx';
 
 type Pos = { lat: number; lng: number } | null;
@@ -13,6 +16,7 @@ export default function Home({ nav }: { nav: Nav }) {
   const [types, setTypes] = useState<PlaceType[]>([]);
   const [pos, setPos] = useState<Pos>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const insets = useSafeAreaInsets();
 
   const refresh = useCallback(async () => {
     setRefreshing(true);
@@ -38,6 +42,21 @@ export default function Home({ nav }: { nav: Nav }) {
     .map((p) => ({ p, d: distOf(p) }))
     .sort((a, b) => (a.d ?? Infinity) - (b.d ?? Infinity));
 
+  const importJson = async () => {
+    try {
+      const r = await DocumentPicker.getDocumentAsync({ type: ['application/json', 'text/plain', '*/*'], copyToCacheDirectory: true });
+      if (r.canceled) return;
+      let json: unknown;
+      try { json = JSON.parse(await new File(r.assets[0].uri).text()); } catch { throw new Error('JSON inválido: arquivo ilegível'); }
+      const created = await importPlaces(json);
+      await refresh();
+      if (created.length === 1) nav.push({ name: 'wizard', params: { placeId: created[0].id, step: 3 } });
+      else Alert.alert('Importado', `${created.map((p) => p.name).join(', ')}. Abra o "Mapa" de cada um para escanear os cantos das áreas.`);
+    } catch (e) {
+      Alert.alert('Erro ao importar', e instanceof Error ? e.message : String(e));
+    }
+  };
+
   const confirmDelete = (p: Place) =>
     Alert.alert('Excluir lugar?', p.name, [
       { text: 'Cancelar', style: 'cancel' },
@@ -47,11 +66,16 @@ export default function Home({ nav }: { nav: Nav }) {
   return (
     <FlatList
       style={{ flex: 1, backgroundColor: C.light }}
-      contentContainerStyle={{ padding: SP.lg }}
+      contentContainerStyle={{ padding: SP.lg, paddingBottom: SP.lg + insets.bottom }}
       data={sorted}
       keyExtractor={(x) => x.p.id}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refresh} />}
-      ListHeaderComponent={<Btn title="+ Novo lugar" size="lg" style={{ marginBottom: SP.lg }} onPress={() => nav.push({ name: 'wizard' })} />}
+      ListHeaderComponent={
+        <View style={{ flexDirection: 'row', gap: SP.sm, marginBottom: SP.lg }}>
+          <Btn title="+ Novo lugar" size="lg" style={{ flex: 1 }} onPress={() => nav.push({ name: 'wizard' })} />
+          <Btn title="Importar JSON" size="lg" variant="outline" style={{ flex: 1 }} onPress={importJson} />
+        </View>
+      }
       ListEmptyComponent={<Text style={{ color: C.muted, textAlign: 'center' }}>Nenhum lugar cadastrado. Toque em "+ Novo lugar" para começar.</Text>}
       renderItem={({ item: { p, d } }) => (
         <Card onLongPress={() => confirmDelete(p)}>

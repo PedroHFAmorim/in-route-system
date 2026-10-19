@@ -1,5 +1,5 @@
 import assert from 'node:assert'
-import { rectCells, paintCells, eraseCells, resizeMap, blockAt, bbox, polyCells, simplify } from './grid.ts'
+import { rectCells, paintCells, eraseCells, resizeMap, blockAt, bbox, polyCells, simplify, insertVert, removeVert } from './grid.ts'
 import type { PlaceMap } from './grid.ts'
 
 const blk = (id: string) => ({ id, name: id, color: '#fff', cells: [], samples: [] })
@@ -44,4 +44,8 @@ assert.equal(polyCells([{ x: -5, y: -5 }, { x: 50, y: -5 }, { x: 50, y: 50 }, { 
 assert.equal(polyCells([{ x: 0, y: 0 }, { x: 1, y: 1 }], 5, 5).length, 0)
 assert.equal(simplify([{ x: 0, y: 0 }, { x: 1, y: 0.1 }, { x: 2, y: 0 }, { x: 3, y: 0 }], 0.5).length, 2, 'colineares caem')
 assert.equal(simplify([{ x: 0, y: 0 }, { x: 2, y: 3 }, { x: 4, y: 0 }], 0.5).length, 3, 'canto fica')
+const t3 = [{ x: 0, y: 0 }, { x: 4, y: 0 }, { x: 0, y: 4 }]
+assert.deepEqual(insertVert(t3, 1, { x: 2, y: 0 }).map((v) => v.x), [0, 2, 4, 0])
+assert.equal(removeVert(t3, 0), t3, 'mantém >= 3')
+assert.deepEqual(removeVert(insertVert(t3, 3, { x: 0, y: 2 }), 3), t3)
 console.log('grid OK')
