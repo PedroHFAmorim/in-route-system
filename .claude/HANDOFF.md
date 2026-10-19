@@ -192,6 +192,25 @@ Cada fase termina com o critério de aceite passando. Commitar ao fim de cada fa
 4. BLE de dispositivos fixos + beacons como sinal extra (e caminho real para iOS).
 5. Rotas internas: grafo de lugares conectados ("Recepção → Corredor A → Sala 3") a partir da ordem em que o usuário caminha.
 6. PostGIS quando bounding box ficar lento.
+7. **Migrar o matching para TensorFlow** (decidido em 2026-10-19: por enquanto fica o KNN de `mobile/matcher.ts`).
+   - **Abordagem:** embedding métrico (rede siamesa/triplet) treinado offline em Keras e exportado para TFLite. Substitui só a `distance()`, e o `rank()`/KNN continua igual.
+     - Funciona em lugares novos sem retreinar.
+     - O KNN atual fica como plano B se o modelo não carregar.
+   - **Descartado:** classificador softmax por bloco. Teria que ser retreinado a cada bloco criado ou editado, e com 3–4 amostras por classe só decora as amostras.
+   - **Gatilho para começar:** mais de 1.000 scans rotulados, de vários lugares e aparelhos, **e** o eval mostrando que os ajustes simples estagnaram:
+     - média das k amostras mais próximas;
+     - peso por AP;
+     - penalidade de ausência;
+     - limiar calibrado.
+   - **Medição:** `cd mobile && node --experimental-strip-types matcher.eval.ts <export.json>` (leave-one-out, top-1/top-2, acerto do verde). Um modelo só entra se superar esse número.
+     - Linha de base em 2026-10-19, com o `places.json` do WinForms (30 amostras, 10 cômodos): top-1 47%, top-2 67%, verde em 13% das consultas com 100% de acerto.
+   - **Coleta de dados para chegar lá:** gravar como amostra extra o scan que o usuário confirmar na navegação (`Navigate.tsx`).
+   - **Custos já conhecidos:**
+     - nova dependência nativa (por exemplo `react-native-fast-tflite`) e rebuild do APK;
+     - pipeline Python;
+     - versionamento do modelo;
+     - fica menos explicável que o RMS em dB.
+   - **O que não muda:** o throttling (4 scans a cada 2 min) e a ausência de scan de Wi-Fi no iOS.
 
 ## 10. Riscos
 
