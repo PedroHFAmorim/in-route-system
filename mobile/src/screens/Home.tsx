@@ -1,11 +1,14 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Alert, FlatList, RefreshControl, Text, View } from 'react-native';
+import { Alert, FlatList, Pressable, RefreshControl, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as DocumentPicker from 'expo-document-picker';
 import { File } from 'expo-file-system';
 import * as Location from 'expo-location';
 import type { Nav } from '../../App.tsx';
 import { formatDist, haversineM } from '../logic.ts';
+import { apiEnabled } from '../api.ts';
+import { getUser, logout } from '../auth.ts';
+import { flush, onPending, pendingCount } from '../scanQueue.ts';
 import { deletePlace, hasNavigableMap, importPlaces, load, type Place, type PlaceType } from '../store.ts';
 import { Badge, Btn, Card, C, FS, SP } from '../ui.tsx';
 
@@ -16,7 +19,14 @@ export default function Home({ nav }: { nav: Nav }) {
   const [types, setTypes] = useState<PlaceType[]>([]);
   const [pos, setPos] = useState<Pos>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [queued, setQueued] = useState(pendingCount());
   const insets = useSafeAreaInsets();
+
+  useEffect(() => {
+    const off = onPending(setQueued);
+    flush(); // ao abrir: tenta mandar o que ficou pendente
+    return off;
+  }, []);
 
   const refresh = useCallback(async () => {
     setRefreshing(true);
@@ -57,6 +67,13 @@ export default function Home({ nav }: { nav: Nav }) {
     }
   };
 
+  // A fila de scans não é apagada ao sair: segue pendente e é enviada no próximo login.
+  const confirmLogout = () =>
+    Alert.alert('Sair da conta?', queued ? `${queued} leitura(s) na fila serão enviadas no próximo login.` : undefined, [
+      { text: 'Cancelar', style: 'cancel' },
+      { text: 'Sair', style: 'destructive', onPress: () => { logout(); } },
+    ]);
+
   const confirmDelete = (p: Place) =>
     Alert.alert('Excluir lugar?', p.name, [
       { text: 'Cancelar', style: 'cancel' },
@@ -71,9 +88,22 @@ export default function Home({ nav }: { nav: Nav }) {
       keyExtractor={(x) => x.p.id}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refresh} />}
       ListHeaderComponent={
-        <View style={{ flexDirection: 'row', gap: SP.sm, marginBottom: SP.lg }}>
-          <Btn title="+ Novo lugar" size="lg" style={{ flex: 1 }} onPress={() => nav.push({ name: 'wizard' })} />
-          <Btn title="Importar JSON" size="lg" variant="outline" style={{ flex: 1 }} onPress={importJson} />
+        <View style={{ marginBottom: SP.lg }}>
+          <View style={{ flexDirection: 'row', gap: SP.sm }}>
+            <Btn title="+ Novo lugar" size="lg" style={{ flex: 1 }} onPress={() => nav.push({ name: 'wizard' })} />
+            <Btn title="Importar JSON" size="lg" variant="outline" style={{ flex: 1 }} onPress={importJson} />
+          </View>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: SP.sm }}>
+            <Text style={{ color: C.muted, fontSize: 12, flexShrink: 1 }}>
+              {apiEnabled() ? `API: ligada · ${queued} leitura${queued === 1 ? '' : 's'} na fila` : 'API: desligada (dados só no aparelho)'}
+              {apiEnabled() && getUser() ? ` · ${getUser()!.email}` : ''}
+            </Text>
+            {apiEnabled() && getUser() ? (
+              <Pressable onPress={confirmLogout} hitSlop={12}>
+                <Text style={{ color: C.primary, fontSize: 12, fontWeight: '600', marginLeft: SP.sm }}>Sair</Text>
+              </Pressable>
+            ) : null}
+          </View>
         </View>
       }
       ListEmptyComponent={<Text style={{ color: C.muted, textAlign: 'center' }}>Nenhum lugar cadastrado. Toque em "+ Novo lugar" para começar.</Text>}

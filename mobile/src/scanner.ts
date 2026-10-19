@@ -16,25 +16,38 @@ async function wait(ms: number, onWait?: (msLeft: number) => void) {
 
 // One full scan attempt. No 30s retry loop: if Android throttles, we fail fast and fall back to
 // the connected AP + BLE (both unthrottled) instead of freezing the UI for ~90s.
-async function run(onWait?: (msLeft: number) => void): Promise<Reading[]> {
+// Leitura crua (coleta de dados): tudo que o scan devolveu, inclusive o que o keep() descarta.
+export type RawReading = Reading & { frequency?: number };
+export type WifiScanFull = { kept: Reading[]; raw: RawReading[]; startedAt: string };
+
+async function run(onWait?: (msLeft: number) => void): Promise<WifiScanFull> {
   await wait(budgetWaitMs(history, Date.now()), onWait);
-  history.push(Date.now());
+  const t0 = Date.now();
+  history.push(t0);
   const res = await scan();
-  return res.readings.filter(keep); // throttled → stale results filtered out by the native timestamp guard → []
+  const raw: RawReading[] = res.readings.map((r) => ({ bssid: r.bssid, ssid: r.ssid, rssi: r.rssi, frequency: r.freq }));
+  return { kept: res.readings.filter(keep), raw, startedAt: new Date(t0).toISOString() }; // throttled → stale results filtered out by the native timestamp guard → []
 }
 
 // Serialized: two screens never scan at once.
-export function scanBudgeted(onWait?: (msLeft: number) => void): Promise<Reading[]> {
+// Mesma fila/budget; devolve a lista filtrada (p/ o matcher) e a crua (p/ envio à API) do mesmo scan.
+export function scanBudgetedFull(onWait?: (msLeft: number) => void): Promise<WifiScanFull> {
   const p = chain.then(() => run(onWait));
   chain = p.catch(() => {});
   return p;
 }
+export const scanBudgeted = (onWait?: (msLeft: number) => void): Promise<Reading[]> => scanBudgetedFull(onWait).then((r) => r.kept);
 
 // BLE is optional redundancy: any failure (off, no permission, no module) is just "no readings".
-export const bleScanSafe = (ms = 4000): Promise<Reading[]> =>
+export type BleScanFull = { kept: Reading[]; raw: Reading[] };
+export const bleScanFull = (ms = 4000): Promise<BleScanFull> =>
   bleScan(ms)
-    .then((l) => l.filter((b) => b.rssi >= MIN_RSSI).map((b) => ({ bssid: b.id, ssid: b.name, rssi: b.rssi })))
-    .catch(() => []);
+    .then((l) => {
+      const raw = l.map((b) => ({ bssid: b.id, ssid: b.name, rssi: b.rssi }));
+      return { kept: raw.filter((b) => b.rssi >= MIN_RSSI), raw };
+    })
+    .catch(() => ({ kept: [], raw: [] }));
+export const bleScanSafe = (ms = 4000): Promise<Reading[]> => bleScanFull(ms).then((r) => r.kept);
 
 // Connected network (unthrottled, 1 AP). null when not associated / filtered out / unavailable.
 export const connectedSafe = (): Promise<Reading | null> =>

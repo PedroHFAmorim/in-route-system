@@ -7,6 +7,11 @@ import { Btn, Header } from './src/ui.tsx';
 import Home from './src/screens/Home.tsx';
 import PlaceWizard from './src/screens/PlaceWizard.tsx';
 import Navigate from './src/screens/Navigate.tsx';
+import Login from './src/screens/Login.tsx';
+import { api, apiEnabled } from './src/api.ts';
+import { initAuth, isAuthed, isAuthReady, onAuthChange } from './src/auth.ts';
+import { pickScreen } from './src/authLogic.ts';
+import { flush } from './src/scanQueue.ts';
 
 export type Route =
   | { name: 'home' }
@@ -54,6 +59,35 @@ export default function App() {
     });
     return () => sub.remove();
   }, [stack.length]);
+
+  // Login: só com API ligada. Sem API o app é offline e nunca pede e-mail/senha.
+  const [, setAuthTick] = useState(0);
+  useEffect(() => {
+    if (!apiEnabled()) return;
+    const off = onAuthChange(() => setAuthTick((n) => n + 1));
+    initAuth().then(() => {
+      if (!isAuthed()) return;
+      // Valida o token em segundo plano. 401 já limpa a sessão (volta pro login); erro de rede = segue (modo campo).
+      api.me().catch(() => {}); // 401 já foi tratado dentro do req
+    });
+    return off;
+  }, []);
+  const screen = pickScreen({ apiEnabled: apiEnabled(), ready: isAuthReady(), authed: isAuthed() });
+  useEffect(() => {
+    if (screen === 'login') setStack([{ name: 'home' }]); // próximo login começa limpo
+    if (screen === 'app') flush(); // reenvia o que ficou na fila (ex.: após 401)
+  }, [screen]);
+
+  if (screen !== 'app') {
+    return (
+      <SafeAreaProvider>
+        <View style={{ flex: 1 }}>
+          <StatusBar style="dark" />
+          {screen === 'login' && <Login />}
+        </View>
+      </SafeAreaProvider>
+    );
+  }
 
   const top = stack[stack.length - 1];
   return (

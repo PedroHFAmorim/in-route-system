@@ -5,7 +5,8 @@ import { useHeading } from '../heading.ts';
 import { arrowDeg, blockCenter } from '../logic.ts';
 import { fuse, rank, rankBle, type Fused, type Reading } from '../../matcher.ts';
 import { NavMap } from '../MapGrid.tsx';
-import { bleScanSafe, connectedSafe, scanBudgeted, wifiReadyNow } from '../scanner.ts';
+import { bleScanFull, connectedSafe, scanBudgetedFull, wifiReadyNow, type RawReading } from '../scanner.ts';
+import { enqueue } from '../scanQueue.ts';
 import { load, type Place } from '../store.ts';
 import { Btn, C, FS, SP } from '../ui.tsx';
 
@@ -24,6 +25,8 @@ export default function Navigate({ placeId }: { placeId: string }) {
   const [busy, setBusy] = useState(false);
   const [aps, setAps] = useState<{ wifi: Reading[]; ble: Reading[] }>({ wifi: [], ble: [] });
   const { heading } = useHeading();
+  const headingNow = useRef<number | null>(null);
+  headingNow.current = heading;
   const insets = useSafeAreaInsets();
   const alive = useRef(true);
   const kick = useRef<() => void>(() => {}); // "Atualizar agora" skips the 30 s countdown
@@ -42,8 +45,10 @@ export default function Navigate({ placeId }: { placeId: string }) {
         setBusy(true);
         try {
           // Unthrottled signals every tick: connected AP + BLE.
+          let startedAt = new Date().toISOString();
           const conn = await connectedSafe();
-          const ble = await bleScanSafe();
+          const bleFull = await bleScanFull();
+          const ble = bleFull.kept;
           if (!alive.current) return;
 
           // Spend a (throttled) full scan only when it's worth it: first fix, no connected AP,
@@ -54,17 +59,28 @@ export default function Navigate({ placeId }: { placeId: string }) {
 
           let wifi: Reading[] | null = null;
           let confirmed = false;
+          let wifiRaw: RawReading[] = [];
           if (wantFull && wifiReadyNow()) {
-            const full = await scanBudgeted().catch(() => [] as Reading[]);
+            const fullScan = await scanBudgetedFull().catch(() => null);
+            const full = fullScan?.kept ?? [];
+            if (fullScan) { wifiRaw = fullScan.raw; startedAt = fullScan.startedAt; }
             if (full.length) { wifi = full; confirmed = true; }
           }
           if (!wifi) wifi = conn ? [conn] : null; // fallback: connected AP as a 1-AP fingerprint
+          if (!wifiRaw.length && conn) wifiRaw = [conn]; // scan completo vazio/não feito: ao menos o AP conectado
           if (conn) { last.bssid = conn.bssid; last.rssi = conn.rssi; }
           if (!alive.current) return;
 
           setAps({ wifi: wifi ?? [], ble });
           const m = fuse(wifi ? rank(wifi, samples)[0] ?? null : null, rankBle(ble, samples)[0] ?? null, confirmed);
           setMatch(m);
+          // Coleta: todo ciclo com leitura vira um scan "locate" (inclusive sem match). Não bloqueia nem lança.
+          if (wifiRaw.length || bleFull.raw.length) {
+            enqueue({
+              kind: 'locate', placeId: p.id, placeName: p.name, heading: headingNow.current, startedAt, wifi: wifiRaw, ble: bleFull.raw,
+              match: m ? { name: p.map.blocks.find((b) => b.id === m.name)?.name ?? m.name, dist: m.dist, common: m.common, source: m.source, sure: m.sure } : null,
+            });
+          }
           setLost(!m);
           setAt(hhmmss(new Date()));
           setStatus(confirmed ? '' : conn ? 'Mantendo por Wi-Fi conectado + Bluetooth' : 'Sem rede conectada; por Bluetooth');

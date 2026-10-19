@@ -1,17 +1,20 @@
 openapi: 3.0.3
 info:
   title: In-Route API
-  version: 1.0.0
-  description: REST backend for the In-Route indoor mapping app. Places are stored in PostgreSQL; the map (blocks/cells/samples) is a JSONB document.
+  version: 2.0.0
+  description: REST backend for the In-Route indoor mapping app. All routes require a Bearer JWT except GET /health and POST /auth/login. Backend NestJS + Prisma + PostgreSQL. Places are stored in PostgreSQL; the map (blocks/cells/samples) is a JSONB document.
 servers:
   - url: http://localhost:3000
     description: Local
   - url: https://<your-service>.up.railway.app
     description: Railway
+security:
+  - bearerAuth: []
 paths:
   /health:
     get:
-      summary: Liveness probe
+      summary: Liveness probe (public)
+      security: []
       responses:
         '200': { description: OK, content: { application/json: { schema: { type: object, properties: { ok: { type: boolean } } } } } }
   /bootstrap:
@@ -76,11 +79,160 @@ paths:
         '200': { description: Existing, content: { application/json: { schema: { $ref: '#/components/schemas/Type' } } } }
         '201': { description: Created, content: { application/json: { schema: { $ref: '#/components/schemas/Type' } } } }
         '400': { $ref: '#/components/responses/BadRequest' }
+  /auth/login:
+    post:
+      summary: Login (public; 10 attempts/min per IP)
+      security: []
+      requestBody:
+        required: true
+        content: { application/json: { schema: { type: object, required: [email, password], properties: { email: { type: string }, password: { type: string } } } } }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token: { type: string }
+                  expiresIn: { type: integer, description: seconds }
+                  user: { $ref: '#/components/schemas/User' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '429': { description: Too many attempts }
+  /auth/me:
+    get:
+      summary: Current user
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/User' } } } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+  /auth/users:
+    get:
+      summary: List users (admin only)
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/User' } } } } }
+        '403': { $ref: '#/components/responses/Forbidden' }
+    post:
+      summary: Create user (admin only; there is no open signup)
+      requestBody:
+        required: true
+        content: { application/json: { schema: { type: object, required: [email, password], properties: { email: { type: string }, password: { type: string, minLength: 8 }, role: { type: string, enum: [admin, collector] } } } } }
+      responses:
+        '201': { description: Created, content: { application/json: { schema: { $ref: '#/components/schemas/User' } } } }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { description: E-mail already registered }
+  /scans:
+    post:
+      summary: Store one raw scan. All readings are kept; `kept` flags what the matcher filter would keep. Optional X-Device-Id header.
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/ScanInput' } } }
+      responses:
+        '201': { description: Created, content: { application/json: { schema: { type: object, properties: { id: { type: string }, wifi: { type: integer }, ble: { type: integer } } } } } }
+        '400': { $ref: '#/components/responses/BadRequest' }
+    get:
+      summary: List scans (metadata only, newest first)
+      parameters:
+        - { name: placeId, in: query, schema: { type: string } }
+        - { name: blockId, in: query, schema: { type: string } }
+        - { name: kind, in: query, schema: { type: string, enum: [sample, locate, debug] } }
+        - { name: deviceId, in: query, schema: { type: string } }
+        - { name: limit, in: query, schema: { type: integer, default: 50, maximum: 200 } }
+        - { name: before, in: query, schema: { type: string, format: date-time } }
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { type: object, properties: { scans: { type: array, items: { type: object } }, nextBefore: { type: string, nullable: true } } } } } }
+  /scans/batch:
+    post:
+      summary: Offline queue upload (up to 50). `ids` has the same length and order as `scans`; null where the scan was rejected.
+      requestBody:
+        required: true
+        content: { application/json: { schema: { type: object, required: [scans], properties: { scans: { type: array, maxItems: 50, items: { $ref: '#/components/schemas/ScanInput' } } } } } }
+      responses:
+        '201': { description: Created, content: { application/json: { schema: { type: object, properties: { ids: { type: array, items: { type: string, nullable: true } }, failed: { type: integer } } } } } }
+        '400': { $ref: '#/components/responses/BadRequest' }
+  /scans/export:
+    get:
+      summary: Streamed dump (scan + readings) for offline analysis
+      parameters:
+        - { name: placeId, in: query, schema: { type: string } }
+        - { name: since, in: query, schema: { type: string, format: date-time } }
+        - { name: format, in: query, schema: { type: string, enum: [json, ndjson], default: ndjson } }
+      responses:
+        '200': { description: ndjson (one scan per line) or a json array, content: { application/x-ndjson: {}, application/json: {} } }
+  /scans/{id}:
+    get:
+      summary: Scan with its readings
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      responses:
+        '200': { description: OK }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /stats:
+    get:
+      summary: Collection counters
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  places: { type: integer }
+                  types: { type: integer }
+                  scans: { type: integer }
+                  readings: { type: integer }
+                  distinctBssids: { type: integer }
+                  byKind: { type: object, additionalProperties: { type: integer } }
+                  byPlace:
+                    type: array
+                    items: { type: object, properties: { placeId: { type: string, nullable: true }, placeName: { type: string, nullable: true }, scans: { type: integer }, readings: { type: integer }, lastAt: { type: string, format: date-time } } }
+                  lastScanAt: { type: string, format: date-time, nullable: true }
 components:
+  securitySchemes:
+    bearerAuth: { type: http, scheme: bearer, bearerFormat: JWT }
   responses:
+    Unauthorized: { description: Missing/invalid token or bad credentials, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+    Forbidden: { description: Admin only, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
     BadRequest: { description: Invalid body, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
     NotFound: { description: Not found, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
   schemas:
+    User:
+      type: object
+      properties:
+        id: { type: string }
+        email: { type: string }
+        role: { type: string, enum: [admin, collector] }
+        createdAt: { type: string, format: date-time }
+    Reading:
+      type: object
+      required: [bssid, rssi]
+      properties:
+        bssid: { type: string, description: Any non-empty string; lowercased }
+        ssid: { type: string, nullable: true }
+        rssi: { type: integer, minimum: -127, maximum: 0 }
+        frequency: { type: integer, nullable: true }
+    ScanInput:
+      type: object
+      required: [kind]
+      properties:
+        deviceId: { type: string }
+        platform: { type: string }
+        kind: { type: string, enum: [sample, locate, debug] }
+        placeId: { type: string }
+        placeName: { type: string }
+        blockId: { type: string }
+        blockName: { type: string }
+        lat: { type: number, nullable: true }
+        lng: { type: number, nullable: true }
+        accuracy: { type: number, nullable: true }
+        heading: { type: number, nullable: true }
+        startedAt: { type: string, format: date-time }
+        wifi: { type: array, maxItems: 300, items: { $ref: '#/components/schemas/Reading' } }
+        ble: { type: array, maxItems: 300, items: { $ref: '#/components/schemas/Reading' } }
+        match:
+          type: object
+          properties: { name: { type: string }, dist: { type: number }, common: { type: integer }, source: { type: string }, sure: { type: boolean } }
+        note: { type: string }
     Error:
       type: object
       properties: { error: { type: string } }

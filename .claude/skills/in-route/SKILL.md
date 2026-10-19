@@ -1,6 +1,6 @@
 ---
 name: in-route
-description: Localização indoor por Wi-Fi/Bluetooth do projeto In-Route (POC Windows em WinForms "location-find", script PowerShell e app Android Expo em "mobile"). Use ao mexer em scan de Wi-Fi/BLE, fingerprint/matching de lugares, estimativa de distância/posição, build do app mobile ou ao depurar leituras erradas. Documenta o que já foi validado em campo, as armadilhas já descobertas (cache de scan, throttling do Android, Expo Go) e offsets nativos verificados — pra não redescobrir.
+description: Localização indoor por Wi-Fi/Bluetooth do projeto In-Route (POC Windows em WinForms "location-find", script PowerShell, editor web Vue em "web" e app Android Expo em "mobile"; desenvolvimento agora em Linux, com build Android local e depuração Wi-Fi). Use ao mexer em scan de Wi-Fi/BLE, fingerprint/matching de lugares, estimativa de distância/posição, build do app mobile ou ao depurar leituras erradas. Documenta o que já foi validado em campo, as armadilhas já descobertas (cache de scan, throttling do Android, Expo Go) e offsets nativos verificados — pra não redescobrir.
 ---
 
 # In-Route: o que já aprendemos
@@ -12,15 +12,15 @@ Regra do usuário: planejar com Opus; explorar e escrever código com agentes **
 
 | Pasta | O que é | Status |
 |---|---|---|
-| `poc-windows/wifi-locate.ps1` | 1º POC, PowerShell 5.1 + WinRT. `scan/save/where/watch/list/delete/selftest` | Superado pelo WinForms; ainda usa WinRT (tem o bug do cache, ver §1) |
-| `location-find/location-find/` | WinForms .NET 10 (`net10.0-windows10.0.19041.0`) | Principal POC desktop |
+| `poc-windows/wifi-locate.ps1` | 1º POC, PowerShell 5.1 + WinRT. `scan/save/where/watch/list/delete/selftest` | Superado pelo WinForms; ainda usa WinRT (tem o bug do cache, ver §1). **Só Windows** |
+| `location-find/location-find/` | WinForms .NET 10 (`net10.0-windows10.0.19041.0`) | Principal POC desktop. **Só Windows** (não compila/roda no Linux) |
 | ├ `Form1` | Salvar lugar (botão por lugar) + Localizar (verde/amarelo) + calibração de área por cantos | **Validado em campo** (andares de prédio) |
 | ├ `Form2` | Rede conectada + distância estimada a cada 1 s (clique a 1 m = calibra) | Lê certo (conferido com `netsh`); precisão em campo não reportada |
 | ├ `Form3` | Lista BLE com RSSI/distância, ~10 leituras/s | Scan funciona (14 dispositivos/5 s); comparação com Wi-Fi não reportada |
 | ├ `Matcher.cs` / `WlanScanner.cs` | Matching puro + scan nativo `wlanapi.dll` | `--selftest` cobre o Matcher |
 | └ `Program.cs` | Escolhe o form em `Application.Run(new FormN())`; `--selftest` → exit code | |
-| `web/` | Vite + Vue 3 + Bootstrap 5. Editor de mapas: lugar → andares → blocos em grade (mesmo formato `Block`/`PlaceMap` do mobile), planta de fundo para decalcar. Salva em `localStorage` (`inroute-web:v1`) + exportar/importar JSON | Testado no navegador (pintar, pincel, planta). `npm run dev`; `node --experimental-strip-types src/grid.check.ts` → "grid OK" |
-| `mobile/` | Expo SDK 57 / RN 0.86, Android-only, módulo nativo local `modules/wifi-scan` (Kotlin) | Instalado via APK do EAS e rodando no celular do usuário |
+| `web/` | Vite + Vue 3 + Bootstrap 5. Editor de mapas: lugar → andares → blocos em grade (mesmo formato `Block`/`PlaceMap` do mobile), planta de fundo para decalcar. Salva em `localStorage` (`inroute-web:v1`) + exportar/importar JSON | Testado no navegador (pintar, pincel, planta). Roda no Linux (build ok em 2026-10-19). `npm run dev`; `node --experimental-strip-types src/grid.check.ts` → "grid OK" |
+| `mobile/` | Expo SDK 57 / RN 0.86, Android-only, módulo nativo local `modules/wifi-scan` (Kotlin) | Instalado via APK do EAS e rodando no celular do usuário. `tsc`/`matcher OK` no Linux; build Android local no Linux ainda não executado |
 
 ## 1. Cache de scan: a armadilha nº 1 (já custou um dia de teste)
 
@@ -64,7 +64,11 @@ Regra do usuário: planejar com Opus; explorar e escrever código com agentes **
 ## 6. Android / app mobile
 
 - **Expo Go não carrega o módulo nativo.** O erro é `Cannot find native module 'WifiScan'` em tela vermelha. Instalar o **APK do EAS** e abrir o ícone In-Route. `index.ts` usa `requireOptionalNativeModule` e mostra a mensagem no status em vez de travar.
-- **Build local + depuração Wi-Fi (validado 2026-10-16):** SDK em `%LOCALAPPDATA%\Android\Sdk`, adb no PATH; o celular (Galaxy A02) já aparece em `adb devices` via mDNS. **Use o JDK 17 portátil** em `%LOCALAPPDATA%\jdk17\jdk-17.0.20.1+1` — o JDK 25 do Android Studio (`jbr`) quebra `configureCMakeDebug` ("A restricted method in java.lang.System") e o Adoptium do PATH é 8. Fluxo: `npx expo prebuild -p android --no-install`, `cd android && ./gradlew assembleDebug` (1º build ~9 min), `adb install -r android/app/build/outputs/apk/debug/app-debug.apk`, `adb reverse tcp:8081 tcp:8081`, `npx expo start`. Mudou só JS → só recarregar; mudou Kotlin → rebuild. O APK de debug tem outra assinatura que o do EAS: precisa desinstalar o outro antes.
+- **Build local + depuração Wi-Fi.** Fluxo (igual nos dois SOs, a partir de `mobile/`): `npx expo prebuild -p android --no-install`, `cd android && ./gradlew assembleDebug` (1º build ~9 min), `adb install -r android/app/build/outputs/apk/debug/app-debug.apk`, `adb reverse tcp:8081 tcp:8081`, `npx expo start`. Mudou só JS → só recarregar; mudou Kotlin → rebuild. O APK de debug tem outra assinatura que o do EAS: precisa desinstalar o outro antes (`adb uninstall com.inroute.app`).
+  - **JDK tem que ser o 17.** O JDK 25 (o `jbr` do Android Studio) quebra `configureCMakeDebug` ("A restricted method in java.lang.System").
+  - **Linux (máquina principal desde 2026-10-19, Ubuntu 26.04):** JDK 17 do apt (`openjdk-17-jdk`, `/usr/lib/jvm/java-17-openjdk-amd64`, é o único Java). SDK sem Android Studio em `~/Android/Sdk`, via `cmdline-tools/latest/bin/sdkmanager`: `platform-tools`, `platforms;android-36`, `build-tools;36.0.0`, `ndk;27.1.12297006`, `cmake;3.22.1` (as versões que o RN 0.86 pede em `node_modules/react-native/gradle/libs.versions.toml`). `JAVA_HOME`, `ANDROID_HOME` e o `PATH` estão **no topo** do `~/.bashrc`: abaixo do `case $- in *i*` o Ubuntu dá `return` em shell não interativo, e as variáveis não chegariam ao Bash do Claude nem a scripts. Se `adb` não for encontrado: `export PATH=$PATH:$HOME/Android/Sdk/platform-tools`. `sudo` pede senha, então instalação via apt quem roda é o usuário (`! sudo apt ...`).
+  - **Windows (até 2026-10-16):** SDK em `%LOCALAPPDATA%\Android\Sdk`; JDK 17 portátil em `%LOCALAPPDATA%\jdk17\jdk-17.0.20.1+1` (o Adoptium do PATH é 8).
+  - **Celular (Galaxy A02, SM-A022M, Android 11 / API 30), depuração por Wi-Fi:** cada PC tem a própria chave adb, então máquina nova precisa **parear**. `adb mdns services` mostra o `_adb-tls-connect` (192.168.0.4:porta) mesmo sem pareamento, mas `adb connect` falha. No celular: Depuração por Wi-Fi > "Parear dispositivo com código"; o usuário passa IP:porta de pareamento e o código; `adb pair <ip>:<porta> <código>`. Depois disso o adb reconecta sozinho pelo mDNS (aparece como `adb-RX8RC0C6BQW-..._adb-tls-connect._tcp`). Se também der `adb connect <ip>:<porta>`, o aparelho aparece duas vezes e `adb shell` reclama de "more than one device": use `adb disconnect <ip>:<porta>` ou `-s`. Linux pareado em 2026-10-19; a limitação de scan já estava em `0` e o `com.inroute.app` já instalado.
 - Build na nuvem (EAS), alternativa: `cd mobile && npx eas-cli build -p android --profile preview` (gera APK; o perfil está em `eas.json`). O Kotlin só compila lá; se o build falhar, o log do EAS diz o motivo.
 - **Throttling: 4 scans a cada 2 min em foreground** (Android 9+), contando Salvar e Localizar juntos.
   - O loop automático de 2 s **não é viável** com a limitação ligada. Ele foi trocado pelo botão **Localizar**, e o **Salvar faz 1 scan** (salvar de novo com o mesmo nome = mais uma amostra).
@@ -77,17 +81,28 @@ Regra do usuário: planejar com Opus; explorar e escrever código com agentes **
 ## Verificação rápida
 
 ```bash
-# WinForms (de location-find/location-find)
-dotnet build                     # esperar 0 erros, 0 avisos
-./bin/Debug/net10.0-windows10.0.19041.0/location-find.exe --selftest; echo $?   # 0 = ok
-# Mobile (de mobile/)
+# Mobile (de mobile/), roda em Linux e Windows
+npm ci                                             # node_modules não vai pro git
 npx tsc --noEmit
 node --experimental-strip-types matcher.check.ts   # "matcher OK"
+npx expo-doctor                                    # em 2026-10-19: só 2 patches desatualizados (expo, expo-location), inofensivo
+# Web (de web/)
+npm ci
+node --experimental-strip-types src/grid.check.ts  # "grid OK"
+npm run build
+# Ambiente Android (Linux)
+java -version            # 17.x
+adb devices              # celular como "device"
+# WinForms: só no Windows (de location-find/location-find)
+dotnet build                     # esperar 0 erros, 0 avisos
+./bin/Debug/net10.0-windows10.0.19041.0/location-find.exe --selftest; echo $?   # 0 = ok
 ```
 
 ## Armadilhas do ambiente de desenvolvimento
 
-- `python` no Git Bash desta máquina é o stub da Microsoft Store e **trava**. Use `node` para scripts rápidos.
+- **O que não roda no Linux:** `location-find` (WinForms, `net10.0-windows`, `wlanapi.dll`, WinRT) e `poc-windows/*.ps1`. Instalar `dotnet` ou `pwsh` não resolve, porque dependem de API do Windows. Mexer neles só para editar código; testar exige o Windows.
+- Linux: Node 22 (via nvm, carregado no `~/.bashrc`). Não há `python` por padrão nos scripts do projeto; continue usando `node` para scripts rápidos.
+- Windows: `python` no Git Bash é o stub da Microsoft Store e **trava**. Use `node` para scripts rápidos.
 - Ao testar código nativo por um argumento temporário (`--ble`, `--conn`) no `Program.cs`: **confirme que o build passou antes de rodar o exe**. Se o build falhar, o exe antigo abre a janela do formulário na tela do usuário. Depois, restaure o `Program.cs` e apague o arquivo temporário.
 - O `places.json` do WinForms fica ao lado do exe (`bin/Debug/...`). Trocar para Release "some" com os lugares.
 - PowerShell 5.1: `R` e `rd` são aliases embutidos e sombreiam funções com esses nomes.

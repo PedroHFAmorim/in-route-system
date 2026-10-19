@@ -3,7 +3,8 @@ import { Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { Reading } from '../matcher.ts';
 import { useHeading } from './heading.ts';
-import { bleScanSafe, scanBudgeted } from './scanner.ts';
+import { bleScanFull, scanBudgetedFull } from './scanner.ts';
+import { enqueue } from './scanQueue.ts';
 import { SignalChart } from './SignalChart.tsx';
 import { newId, type Block, type Place } from './store.ts';
 import { Btn, C, FS, SHADOW, SP } from './ui.tsx';
@@ -75,8 +76,18 @@ export function MapEditor({ place, update, back, done }: { place: Place; update:
     setBusy(true);
     setStatus('Escaneando…');
     try {
-      const readings = await scanBudgeted();
-      const ble = await bleScanSafe();
+      const wifiScan = await scanBudgetedFull();
+      const bleScan = await bleScanFull();
+      const startedAt = wifiScan.startedAt;
+      const readings = wifiScan.kept;
+      const ble = bleScan.kept;
+      // Coleta: manda as leituras CRUAS (sem filtro) com o rótulo do bloco; fila offline, não bloqueia.
+      if (wifiScan.raw.length || bleScan.raw.length) {
+        enqueue({
+          kind: 'sample', placeId: place.id, placeName: place.name, blockId: sel.id, blockName: sel.name,
+          heading, startedAt, wifi: wifiScan.raw, ble: bleScan.raw,
+        });
+      }
       setChart([...readings, ...ble]);
       if (!readings.length && !ble.length) { setStatus('Nada captado (Android pode estar limitando). Tente de novo.'); return; }
       const sample = { name: sel.id, createdAt: new Date().toISOString(), readings, ...(ble.length ? { ble } : {}) };

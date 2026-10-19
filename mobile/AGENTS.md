@@ -39,3 +39,16 @@ Docs: https://docs.expo.dev/eas/index.md
 - If `ios/` and `android/` directories do not exist, they are generated (Continuous Native Generation). Never create or edit them by hand — configure native behavior in `app.json` and config plugins.
 - Expo Go only includes its bundled native modules. After adding a library with native code, the app needs a development build: `npx expo run:ios|android` locally, or `eas build --profile development`.
 - Prefer recommended Expo modules over third-party libraries, and check your available skills before adding dependencies. Docs: https://docs.expo.dev/versions/latest/index.md
+
+## Coleta de scans (API)
+
+- `EXPO_PUBLIC_API_URL` é o interruptor: definida, o app usa o backend (lugares) e envia cada leitura de Wi-Fi/BLE; ausente, tudo fica só no aparelho. Copie `.env.example` para `.env` e preencha.
+- O Expo embute `EXPO_PUBLIC_*` **no build**: o APK guarda o valor de quando foi gerado. Mudou a URL, gere o APK de novo (ou reinicie o `expo start` no dev).
+- Cada captura de amostra (`MapEditor`, `kind: "sample"`) e cada ciclo de navegação (`Navigate`, `kind: "locate"`, inclusive sem match) vai para `POST /scans` com as leituras **cruas** (sem o filtro `keep()`/`MIN_RSSI`; o matcher continua usando só as filtradas). `scanBudgetedFull`/`bleScanFull` em `src/scanner.ts` devolvem filtrada + crua do mesmo scan.
+- Fila offline em `src/scanQueue.ts` (AsyncStorage `inroute:scanq`, máx. 200, descarta as mais antigas); `flush()` manda lotes de 50 em `/scans/batch` ao abrir o app e após cada enqueue, removendo só o que o servidor confirmou. Falhas de rede são silenciosas. Lógica pura em `src/scanQueue.logic.ts`.
+- `deviceId` (UUID v4 em `inroute:deviceId`) vai no header `X-Device-Id` de todas as chamadas.
+- Checks: `node --experimental-strip-types src/scanQueue.check.ts`.
+- **Login (só com `EXPO_PUBLIC_API_URL` definida)**: a API exige `Authorization: Bearer <token>` em tudo, menos `GET /health` e `POST /auth/login`. Não há cadastro no app: **o admin cria os usuários** no backend. O app abre na tela `Login` (e-mail + senha → `POST /auth/login`); token JWT (30 dias) e usuário ficam em `inroute:auth` (`src/auth.ts`, com cache em memória). Sem a variável, o app é offline e nenhum login aparece.
+- `src/api.ts` manda o Bearer em toda chamada. **401** limpa a sessão, o `App.tsx` volta pro Login e o erro lançado é `UnauthorizedError` (`isUnauthorized(e)`), diferente de erro de rede. Ao abrir, o token é validado em segundo plano com `GET /auth/me`: 401 cai no Login; sem rede segue usando o app (modo campo).
+- A fila de scans nunca perde dado por 401: o flush só para e reenvia após o próximo login (`App.tsx` chama `flush()` ao entrar). "Sair" (na Home) não apaga a fila.
+- Lógica pura em `src/authLogic.ts`; check: `node --experimental-strip-types src/authLogic.check.ts`.
