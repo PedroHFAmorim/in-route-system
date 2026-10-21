@@ -5,7 +5,7 @@ import * as DocumentPicker from 'expo-document-picker';
 import { File } from 'expo-file-system';
 import * as Location from 'expo-location';
 import type { Nav } from '../../App.tsx';
-import { formatDist, haversineM } from '../logic.ts';
+import { formatDist, haversineM, mapQualityLabel } from '../logic.ts';
 import { apiEnabled } from '../api.ts';
 import { getUser, logout } from '../auth.ts';
 import { flush, onPending, pendingCount } from '../scanQueue.ts';
@@ -61,7 +61,7 @@ export default function Home({ nav }: { nav: Nav }) {
       const created = await importPlaces(json);
       await refresh();
       if (created.length === 1) nav.push({ name: 'wizard', params: { placeId: created[0].id, step: 3 } });
-      else Alert.alert('Importado', `${created.map((p) => p.name).join(', ')}. Abra o "Mapa" de cada um para escanear os cantos das áreas.`);
+      else Alert.alert('Importado', `${created.map((p) => p.name).join(', ')}. Abra o "Mapa" de cada um para escanear os quadrados das áreas.`);
     } catch (e) {
       Alert.alert('Erro ao importar', e instanceof Error ? e.message : String(e));
     }
@@ -114,12 +114,24 @@ export default function Home({ nav }: { nav: Nav }) {
             <Badge text={types.find((t) => t.id === p.typeId)?.name ?? 'Sem tipo'} />
             <Text style={{ color: C.muted }}>{d != null ? formatDist(d) : 'Distância desconhecida'}</Text>
           </View>
+          <Text style={{ color: C.muted, fontSize: 12, marginBottom: SP.sm }}>
+            {p.map ? mapQualityLabel(p.map.blocks) : 'Sem mapa'}
+          </Text>
           <View style={{ flexDirection: 'row', gap: SP.sm }}>
-            {hasNavigableMap(p) && (
-              <Btn title="Navegar" size="sm" onPress={() => nav.push({ name: 'navigate', params: { placeId: p.id } })} />
-            )}
+            {/* O botão fica visível e desabilitado: antes sumia sem explicação quando faltavam leituras. */}
+            <Btn
+              title="Navegar"
+              size="sm"
+              disabled={!hasNavigableMap(p)}
+              onPress={() => nav.push({ name: 'navigate', params: { placeId: p.id } })}
+            />
             <Btn title="Mapa" size="sm" variant="outline" onPress={() => nav.push({ name: 'wizard', params: { placeId: p.id, step: 2 } })} />
           </View>
+          {!hasNavigableMap(p) && (
+            <Text style={{ color: C.muted, fontSize: 12, marginTop: SP.sm }}>
+              {p.map ? 'Para navegar, escaneie ao menos um quadrado em "Mapa".' : 'Abra "Mapa" para desenhar e escanear os quadrados.'}
+            </Text>
+          )}
         </Card>
       )}
     />

@@ -1,11 +1,16 @@
 // Lógica pura da fila de scans (sem React Native / AsyncStorage), testável com node.
 
+// Contrato da API usa `frequency`; o módulo nativo devolve `freq`. Único ponto de conversão.
+export type ApiWifi = { bssid: string; ssid?: string; rssi: number; frequency?: number };
+export const toApiWifi = (raw: { bssid: string; ssid?: string; rssi: number; freq?: number }[]): ApiWifi[] =>
+  raw.map(({ freq, ...r }) => (freq != null ? { ...r, frequency: freq } : r));
+
 export type ScanPayload = {
   deviceId: string; platform: string; kind: 'sample' | 'locate' | 'debug';
   placeId?: string; placeName?: string; blockId?: string; blockName?: string;
   lat?: number | null; lng?: number | null; accuracy?: number | null; heading?: number | null;
   startedAt: string;
-  wifi: { bssid: string; ssid?: string; rssi: number; frequency?: number }[];
+  wifi: ApiWifi[];
   ble: { bssid: string; ssid?: string; rssi: number }[];
   match?: { name: string; dist: number; common: number; source: string; sure: boolean } | null;
   note?: string;

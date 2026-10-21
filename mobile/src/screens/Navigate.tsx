@@ -3,14 +3,18 @@ import { ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useHeading } from '../heading.ts';
 import { arrowDeg, blockCenter } from '../logic.ts';
-import { fuse, rank, rankBle, type Fused, type Reading } from '../../matcher.ts';
+import { fuse, keep, rank, rankBle, type Fused, type Reading } from '../../matcher.ts';
 import { NavMap } from '../MapGrid.tsx';
-import { bleScanFull, connectedSafe, scanBudgetedFull, wifiReadyNow, type RawReading } from '../scanner.ts';
+import { addConnListener, addScanResultsListener, bleSnapshotFull, connectedSafe, scanBudgetedFull, startBleSession, startConnWatch, startPassive, stopBleSession, stopConnWatch, stopPassive } from '../scanner.ts';
 import { enqueue } from '../scanQueue.ts';
+import { toApiWifi, type ApiWifi } from '../scanQueue.logic.ts';
 import { load, type Place } from '../store.ts';
+import { NetworkHint } from '../NetworkHint.tsx';
 import { Btn, C, FS, SP } from '../ui.tsx';
 
 const REFRESH_MS = 30000;
+const PASSIVE_DEBOUNCE_MS = 2000;
+const MOVE_DEBOUNCE_MS = 3000; // um evento de RSSI chega a cada ~3 s: agenda uma vez e não deixa o timer ser reiniciado
 const MOVE_DB = 8; // ponytail: connected-AP RSSI shift that counts as "maybe moved" → spend a full scan. Tune in field.
 const SRC = { both: 'Confirmado por Wi-Fi e Bluetooth', wifi: 'Por Wi-Fi', ble: 'Por Bluetooth' };
 const hhmmss = (d: Date) => d.toTimeString().slice(0, 8);
@@ -31,65 +35,108 @@ export default function Navigate({ placeId }: { placeId: string }) {
   const alive = useRef(true);
   const kick = useRef<() => void>(() => {}); // "Atualizar agora" skips the 30 s countdown
   const forceFull = useRef(false); // "Atualizar agora" also forces a full Wi-Fi scan this cycle
+  const running = useRef(false); // um ciclo por vez: evento passivo durante ciclo é ignorado
+  const conn = useRef<Reading | null>(null); // último AP conectado vindo do evento (sem polling)
+  const last = useRef({ bssid: null as string | null, rssi: 0 }); // último AP conectado, para detectar movimento
+  const [read, setRead] = useState<{ origin: 'scan' | 'cache' | 'conn' | 'none'; ageMs: number | null; readAt: number; waitUntil: number } | null>(null);
 
+  // Um ciclo de localização. `passive` = disparado por scan do aparelho: só lê o cache (grátis), sem BLE novo.
+  // Retorna false se já havia ciclo em andamento (reentrância), para o chamador ignorar.
+  const cycle = async (p: Place, passive: boolean): Promise<boolean> => {
+    if (running.current) return false;
+    running.current = true;
+    setBusy(true);
+    try {
+      const samples = p.map?.blocks.flatMap((b) => b.samples) ?? [];
+      let startedAt = new Date().toISOString();
+      const c = conn.current;
+      // Snapshot da sessão BLE contínua: instantâneo, então vale em todo ciclo (passivo ou não).
+      const bleFull = await bleSnapshotFull();
+      if (!alive.current) return true;
+      const ble = bleFull.kept;
+
+      // Quem decide se gasta scan ativo é o planScan dentro do scanner; aqui só dizemos o contexto.
+      const moved = hasMoved(c, last.current);
+      const forced = forceFull.current;
+      forceFull.current = false;
+      const fullScan = await scanBudgetedFull(passive ? { allowActive: false } : { moved, forced }).catch(() => null);
+      if (!alive.current) return true;
+      if (fullScan) startedAt = fullScan.startedAt;
+
+      // Matcher usa Reading (filtrado); a API recebe o cru, ou ao menos o AP conectado.
+      const confirmed = !!fullScan?.kept.length;
+      const wifi: Reading[] | null = confirmed ? fullScan!.kept : c ? [c] : null;
+      const wifiPayload: ApiWifi[] = fullScan?.raw.length ? toApiWifi(fullScan.raw) : c ? [c] : [];
+      if (c) last.current = { bssid: c.bssid, rssi: c.rssi };
+
+      setAps({ wifi: wifi ?? [], ble });
+      const m = fuse(wifi ? rank(wifi, samples)[0] ?? null : null, rankBle(ble, samples)[0] ?? null, confirmed);
+      setMatch(m);
+      // Coleta: todo ciclo com leitura vira um scan "locate" (inclusive sem match). Não bloqueia nem lança.
+      if (wifiPayload.length || bleFull.raw.length) {
+        enqueue({
+          kind: 'locate', placeId: p.id, placeName: p.name, heading: headingNow.current, startedAt, wifi: wifiPayload, ble: bleFull.raw,
+          match: m ? { name: p.map?.blocks.find((b) => b.id === m.name)?.name ?? m.name, dist: m.dist, common: m.common, source: m.source, sure: m.sure } : null,
+        });
+      }
+      setLost(!m);
+      setAt(hhmmss(new Date()));
+      setRead({
+        origin: confirmed ? (fullScan!.source === 'active' ? 'scan' : 'cache') : c ? 'conn' : 'none',
+        ageMs: confirmed ? fullScan!.ageMs : null,
+        readAt: Date.now(),
+        // Throttling: avisa quanto falta para uma leitura nova em vez de parecer travado.
+        waitUntil: fullScan && (fullScan.throttled || fullScan.waitMs > 0) ? Date.now() + fullScan.waitMs : 0,
+      });
+      setStatus('');
+    } catch (e: unknown) {
+      if (alive.current) setStatus(e instanceof Error ? e.message : String(e));
+    } finally {
+      running.current = false;
+      if (alive.current) setBusy(false);
+    }
+    return true;
+  };
+
+  const [netSsid, setNetSsid] = useState<string | null>(null); // null = sem Wi-Fi conectado
   useEffect(() => {
     alive.current = true;
+    let sub: { remove(): void } | null = null;
+    let connSub: { remove(): void } | null = null;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    let moveTimer: ReturnType<typeof setTimeout> | null = null;
+    let connSeen = false;
+    conn.current = null;
+    // Fontes antes do load: o cleanup abaixo cobre qualquer queda da tela, mesmo durante o await.
+    startPassive().catch(() => {});
+    startBleSession().catch(() => {});
+    startConnWatch().catch(() => {});
+    // Leitura inicial para não começar sem nada; descartada se um evento já chegou antes dela.
+    connectedSafe().then((r) => { if (alive.current && !connSeen) { conn.current = r; setNetSsid(r ? r.ssid ?? '' : null); } });
     (async () => {
       const p = (await load()).places.find((x) => x.id === placeId) ?? null;
       if (!alive.current || !p?.map) return;
       setPlace(p);
-      const samples = p.map.blocks.flatMap((b) => b.samples);
-      let first = true;
-      const last = { bssid: null as string | null, rssi: 0 }; // last connected AP, to detect movement
+      // Scan do aparelho (grátis): relocaliza na hora. Debounce de 2 s evita rajada; cycle() ignora reentrância.
+      sub = addScanResultsListener(() => {
+        if (timer) clearTimeout(timer);
+        timer = setTimeout(() => { if (alive.current) void cycle(p, true); }, PASSIVE_DEBOUNCE_MS);
+      });
+      // RSSI conectado por evento (~3 s): guarda o último e, se mudou de AP ou variou > MOVE_DB, dispara
+      // ciclo já (sem esperar os 30 s). Agenda só se não há timer pendente — com evento a cada 3 s, um
+      // debounce que reinicia nunca dispararia. Quem decide se há orçamento de scan é o planScan.
+      connSub = addConnListener((e) => {
+        connSeen = true;
+        conn.current = e && keep(e) ? { bssid: e.bssid, ssid: e.ssid, rssi: e.rssi } : null;
+        setNetSsid(conn.current ? conn.current.ssid ?? '' : null); // alimenta o aviso de rede; sem polling novo
+        if (moveTimer || !hasMoved(conn.current, last.current)) return;
+        moveTimer = setTimeout(() => {
+          moveTimer = null;
+          if (alive.current) void cycle(p, false); // false de reentrância: o próximo evento reavalia
+        }, MOVE_DEBOUNCE_MS);
+      });
       while (alive.current) {
-        setBusy(true);
-        try {
-          // Unthrottled signals every tick: connected AP + BLE.
-          let startedAt = new Date().toISOString();
-          const conn = await connectedSafe();
-          const bleFull = await bleScanFull();
-          const ble = bleFull.kept;
-          if (!alive.current) return;
-
-          // Spend a (throttled) full scan only when it's worth it: first fix, no connected AP,
-          // moved (connected AP changed or its RSSI shifted), or the user tapped "Atualizar agora".
-          const moved = !!conn && last.bssid != null && (conn.bssid !== last.bssid || Math.abs(conn.rssi - last.rssi) > MOVE_DB);
-          const wantFull = first || !conn || moved || forceFull.current;
-          forceFull.current = false;
-
-          let wifi: Reading[] | null = null;
-          let confirmed = false;
-          let wifiRaw: RawReading[] = [];
-          if (wantFull && wifiReadyNow()) {
-            const fullScan = await scanBudgetedFull().catch(() => null);
-            const full = fullScan?.kept ?? [];
-            if (fullScan) { wifiRaw = fullScan.raw; startedAt = fullScan.startedAt; }
-            if (full.length) { wifi = full; confirmed = true; }
-          }
-          if (!wifi) wifi = conn ? [conn] : null; // fallback: connected AP as a 1-AP fingerprint
-          if (!wifiRaw.length && conn) wifiRaw = [conn]; // scan completo vazio/não feito: ao menos o AP conectado
-          if (conn) { last.bssid = conn.bssid; last.rssi = conn.rssi; }
-          if (!alive.current) return;
-
-          setAps({ wifi: wifi ?? [], ble });
-          const m = fuse(wifi ? rank(wifi, samples)[0] ?? null : null, rankBle(ble, samples)[0] ?? null, confirmed);
-          setMatch(m);
-          // Coleta: todo ciclo com leitura vira um scan "locate" (inclusive sem match). Não bloqueia nem lança.
-          if (wifiRaw.length || bleFull.raw.length) {
-            enqueue({
-              kind: 'locate', placeId: p.id, placeName: p.name, heading: headingNow.current, startedAt, wifi: wifiRaw, ble: bleFull.raw,
-              match: m ? { name: p.map.blocks.find((b) => b.id === m.name)?.name ?? m.name, dist: m.dist, common: m.common, source: m.source, sure: m.sure } : null,
-            });
-          }
-          setLost(!m);
-          setAt(hhmmss(new Date()));
-          setStatus(confirmed ? '' : conn ? 'Mantendo por Wi-Fi conectado + Bluetooth' : 'Sem rede conectada; por Bluetooth');
-          first = false;
-        } catch (e: any) {
-          if (!alive.current) return;
-          setStatus(e?.message ?? String(e));
-        }
-        setBusy(false);
+        await cycle(p, false);
         // Countdown to next refresh.
         const end = Date.now() + REFRESH_MS;
         let skip = false;
@@ -101,7 +148,16 @@ export default function Navigate({ placeId }: { placeId: string }) {
         setNextIn(0);
       }
     })();
-    return () => { alive.current = false; };
+    return () => {
+      alive.current = false;
+      if (timer) clearTimeout(timer);
+      if (moveTimer) clearTimeout(moveTimer);
+      sub?.remove();
+      connSub?.remove();
+      stopPassive().catch(() => {});
+      stopBleSession().catch(() => {});
+      stopConnWatch().catch(() => {});
+    };
   }, [placeId]);
 
   if (!place?.map) return <Text style={{ padding: SP.lg }}>Carregando...</Text>;
@@ -143,6 +199,12 @@ export default function Navigate({ placeId }: { placeId: string }) {
           {nextIn > 0 ? ` · próxima em ${nextIn}s` : ''}
           {match && at ? ` · ${SRC[match.source]}` : ''}
         </Text>
+        <NetworkHint conn={netSsid === null ? null : { ssid: netSsid }} />
+        {read ? (
+          <Text style={{ color: C.muted, fontSize: FS.sm, marginTop: SP.xs }}>
+            {describeRead(read)}
+          </Text>
+        ) : null}
         {status ? <Text style={{ color: C.primary, fontSize: FS.sm, marginTop: SP.xs }}>{status}</Text> : null}
         {block && block.headingRef == null ? (
           <Text style={{ color: C.muted, fontSize: FS.sm, marginTop: SP.xs }}>Direção não calibrada neste bloco.</Text>
@@ -174,6 +236,19 @@ export default function Navigate({ placeId }: { placeId: string }) {
       </View>
     </View>
   );
+}
+
+// Mudou de AP ou o RSSI variou mais que MOVE_DB desde a última localização.
+function hasMoved(c: Reading | null, l: { bssid: string | null; rssi: number }): boolean {
+  return !!c && l.bssid != null && (c.bssid !== l.bssid || Math.abs(c.rssi - l.rssi) > MOVE_DB);
+}
+
+// Idade real da leitura + origem; se o Android está limitando, quanto falta para uma nova.
+function describeRead(r: { origin: 'scan' | 'cache' | 'conn' | 'none'; ageMs: number | null; readAt: number; waitUntil: number }): string {
+  const age = r.ageMs == null ? '' : ` (${Math.round((r.ageMs + Date.now() - r.readAt) / 1000)} s atrás)`;
+  const base = r.origin === 'scan' ? `Leitura do próprio scan${age}` : r.origin === 'cache' ? `Leitura do cache do sistema${age}` : r.origin === 'conn' ? 'Só Wi-Fi conectado + Bluetooth' : 'Só Bluetooth';
+  const left = Math.ceil((r.waitUntil - Date.now()) / 1000);
+  return r.waitUntil && left > 0 ? `${base} · nova leitura completa em ${left} s` : base;
 }
 
 // -30 dBm (full) .. -90 dBm (empty) → 4-bar strength glyph.

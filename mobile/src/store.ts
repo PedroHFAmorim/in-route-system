@@ -3,6 +3,7 @@ import { File, Paths } from 'expo-file-system';
 import type { Sample } from '../matcher.ts';
 import { api, apiEnabled } from './api.ts';
 import { parsePlaceJson } from './importer.ts';
+import { canNavigate } from './logic.ts';
 
 export type PlaceType = { id: string; name: string };
 export type Cell = { c: number; r: number };
@@ -59,7 +60,8 @@ export async function ensureType(name: string): Promise<PlaceType> {
 
 export const listTypes = async () => (await load()).types;
 
-export const hasNavigableMap = (p: Place) => !!p.map && p.map.blocks.some((b) => b.samples.length >= 4);
+// Basta uma leitura em um bloco. Leituras extras só melhoram a precisão (ver mapQualityLabel); não são exigidas.
+export const hasNavigableMap = (p: Place) => !!p.map && canNavigate(p.map.blocks);
 
 // Imports the JSON exported by the web editor: one mobile Place per floor with blocks.
 export async function importPlaces(json: unknown): Promise<Place[]> {

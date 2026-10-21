@@ -3,29 +3,63 @@ import { Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { Reading } from '../matcher.ts';
 import { useHeading } from './heading.ts';
-import { bleScanFull, scanBudgetedFull } from './scanner.ts';
+import { mapQualityLabel } from './logic.ts';
+import { bleSnapshotFull, connectedSafe, scanBudgetedFull, startBleSession, startPassive, stopBleSession, stopPassive } from './scanner.ts';
 import { enqueue } from './scanQueue.ts';
+import { toApiWifi } from './scanQueue.logic.ts';
+import { NetworkHint } from './NetworkHint.tsx';
 import { SignalChart } from './SignalChart.tsx';
 import { newId, type Block, type Place } from './store.ts';
 import { Btn, C, FS, SHADOW, SP } from './ui.tsx';
 
+const SAMPLE_MAX_AGE_MS = 10000; // amostra gravada com dado velho já custou um dia de testes em campo
 const Z = 84; // square size in px
 const key = (c: number, r: number) => `${c},${r}`;
 const norm = (d: number) => ((d % 360) + 360) % 360;
 const scanned = (b: Block) => b.samples.length > 0;
 
-export function MapEditor({ place, update, back, done }: { place: Place; update: (p: Place) => void; back: () => void; done: () => void }) {
+export function MapEditor({ place, update, back, done, saveError }: { place: Place; update: (p: Place) => void; back: () => void; done: () => void; saveError?: string }) {
   const map = place.map ?? { cols: 1, rows: 1, blocks: [] };
   const [selId, setSelId] = useState<string | null>(null);
   const [vp, setVp] = useState({ w: 0, h: 0 });
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState('');
+  const [waitUntil, setWaitUntil] = useState(0); // fim do throttling do Android (epoch ms); 0 = sem espera
+  const [, setTick] = useState(0);
   const [chart, setChart] = useState<Reading[]>([]);
   const { heading, available: compass } = useHeading();
   const insets = useSafeAreaInsets();
   const azimuth0 = useRef<number | null>(map.azimuth0 ?? null);
 
   const setBlocks = (blocks: Block[]) => update({ ...place, map: { ...map, blocks, azimuth0: azimuth0.current ?? undefined } });
+
+  // Receiver passivo: os scans do sistema mantêm o cache quente enquanto o usuário mapeia. Cleanup cobre qualquer queda da tela.
+  useEffect(() => {
+    startPassive().catch(() => {});
+    startBleSession().catch(() => {}); // BLE contínuo: o snapshot ao gravar amostra não espera varredura
+    return () => { stopPassive().catch(() => {}); stopBleSession().catch(() => {}); };
+  }, []);
+
+  // Rede conectada: leitura barata (não gasta orçamento de scan), ao montar e a cada 15 s para o aviso de dados móveis.
+  const [netSsid, setNetSsid] = useState<string | null>(null);
+  useEffect(() => {
+    let alive = true;
+    const read = () => { connectedSafe().then((r) => { if (alive) setNetSsid(r ? r.ssid ?? '' : null); }); };
+    read();
+    const t = setInterval(read, 15000);
+    return () => { alive = false; clearInterval(t); };
+  }, []);
+
+  // Re-renderiza a cada segundo só enquanto há contagem regressiva.
+  useEffect(() => {
+    if (!waitUntil) return;
+    const t = setInterval(() => {
+      setTick((n) => n + 1);
+      if (Date.now() >= waitUntil) setWaitUntil(0);
+    }, 1000);
+    return () => clearInterval(t);
+  }, [waitUntil]);
+  const waitLeft = waitUntil ? Math.max(0, Math.ceil((waitUntil - Date.now()) / 1000)) : 0;
 
   // Start with a single square in the middle.
   useEffect(() => {
@@ -76,25 +110,35 @@ export function MapEditor({ place, update, back, done }: { place: Place; update:
     setBusy(true);
     setStatus('Escaneando…');
     try {
-      const wifiScan = await scanBudgetedFull();
-      const bleScan = await bleScanFull();
+      // forced: o usuário pediu agora; maxAgeMs curto: cache só serve se for bem recente.
+      const wifiScan = await scanBudgetedFull({ maxAgeMs: SAMPLE_MAX_AGE_MS, forced: true });
+      const bleScan = await bleSnapshotFull(SAMPLE_MAX_AGE_MS); // janela curta: precisão importa ao gravar, igual ao Wi-Fi
       const startedAt = wifiScan.startedAt;
-      const readings = wifiScan.kept;
+      const fresh = wifiScan.ageMs != null && wifiScan.ageMs <= SAMPLE_MAX_AGE_MS;
+      const readings = fresh ? wifiScan.kept : []; // nunca grava leitura velha
       const ble = bleScan.kept;
       // Coleta: manda as leituras CRUAS (sem filtro) com o rótulo do bloco; fila offline, não bloqueia.
-      if (wifiScan.raw.length || bleScan.raw.length) {
+      if ((fresh && wifiScan.raw.length) || bleScan.raw.length) {
         enqueue({
           kind: 'sample', placeId: place.id, placeName: place.name, blockId: sel.id, blockName: sel.name,
-          heading, startedAt, wifi: wifiScan.raw, ble: bleScan.raw,
+          heading, startedAt, wifi: fresh ? toApiWifi(wifiScan.raw) : [], ble: bleScan.raw,
         });
       }
       setChart([...readings, ...ble]);
-      if (!readings.length && !ble.length) { setStatus('Nada captado (Android pode estar limitando). Tente de novo.'); return; }
+      const limited = wifiScan.throttled || wifiScan.waitMs > 0;
+      // Sem Wi-Fi novo e o Android está limitando: não grava, mostra quanto falta (contagem regressiva).
+      if (!readings.length && limited) {
+        setWaitUntil(Date.now() + wifiScan.waitMs);
+        setStatus('');
+        return;
+      }
+      if (!readings.length && !ble.length) { setStatus('Nenhuma rede detectada. Confira Localização/Wi-Fi ligados e tente de novo.'); return; }
+      setWaitUntil(0);
       const sample = { name: sel.id, createdAt: new Date().toISOString(), readings, ...(ble.length ? { ble } : {}) };
       setBlocks(map.blocks.map((b) => (b.id === sel.id ? { ...b, samples: [...b.samples, sample] } : b)));
       setStatus('');
-    } catch (e: any) {
-      setStatus(e?.message ?? String(e));
+    } catch (e: unknown) {
+      setStatus(e instanceof Error ? e.message : String(e));
     } finally {
       setBusy(false);
     }
@@ -131,6 +175,7 @@ export function MapEditor({ place, update, back, done }: { place: Place; update:
           {map.blocks.map((b) => {
             const { c, r } = b.cells[0];
             const on = scanned(b);
+            const tone = on ? C.success : C.danger;
             const isSel = b.id === selId;
             return (
               <Pressable
@@ -138,13 +183,13 @@ export function MapEditor({ place, update, back, done }: { place: Place; update:
                 onPress={() => setSelId(b.id)}
                 style={{
                   position: 'absolute', left: c * Z + 4, top: r * Z + 4, width: Z - 8, height: Z - 8, borderRadius: 12,
-                  backgroundColor: on ? C.success + '33' : C.danger + '22',
-                  borderWidth: isSel ? 3 : 2, borderColor: isSel ? C.primary : on ? C.success : C.danger,
+                  backgroundColor: tone + (on ? '33' : '22'),
+                  borderWidth: isSel ? 3 : 2, borderColor: isSel ? C.primary : tone,
                   alignItems: 'center', justifyContent: 'center',
                 }}
               >
                 <Text style={{ fontSize: 22 }}>{on ? '✓' : '○'}</Text>
-                <Text style={{ fontSize: 10, color: C.muted }}>{b.samples.length > 0 ? `${b.samples.length} leitura${b.samples.length > 1 ? 's' : ''}` : 'vazio'}</Text>
+                <Text style={{ fontSize: 10, color: C.muted }}>{on ? `${b.samples.length} leitura${b.samples.length > 1 ? 's' : ''}` : 'vazio'}</Text>
               </Pressable>
             );
           })}
@@ -181,7 +226,10 @@ export function MapEditor({ place, update, back, done }: { place: Place; update:
         <View style={{ backgroundColor: '#fffffff2', borderRadius: 12, paddingHorizontal: SP.md, paddingVertical: SP.xs, ...SHADOW }}>
           <Text style={{ fontWeight: '700', color: C.text }}>Mapear {place.name}</Text>
           <Text style={{ fontSize: 11, color: C.muted }}>
-            {doneCount}/{map.blocks.length} quadrados escaneados{compass === false ? ' · sem bússola' : arrowDeg != null ? ` · ${Math.round(arrowDeg)}°` : ''}
+            {mapQualityLabel(map.blocks)}{compass === false ? ' · sem bússola' : arrowDeg != null ? ` · ${Math.round(arrowDeg)}°` : ''}
+          </Text>
+          <Text style={{ fontSize: 11, color: doneCount ? C.success : C.danger }}>
+            {doneCount ? 'Já dá para navegar; leituras extras no mesmo quadrado melhoram a precisão.' : 'Escaneie ao menos um quadrado para poder navegar.'}
           </Text>
         </View>
       </View>
@@ -191,6 +239,17 @@ export function MapEditor({ place, update, back, done }: { place: Place; update:
 
       {/* Actions, bottom-right */}
       <View style={{ position: 'absolute', right: SP.md, bottom: SP.md + insets.bottom, gap: SP.sm, alignItems: 'flex-end' }}>
+        <NetworkHint floating conn={netSsid === null ? null : { ssid: netSsid }} />
+        {saveError ? (
+          <View style={{ backgroundColor: '#f8d7da', borderRadius: 10, paddingHorizontal: SP.md, paddingVertical: SP.xs, maxWidth: 260, ...SHADOW }}>
+            <Text style={{ fontSize: FS.sm, color: '#842029' }}>{saveError}</Text>
+          </View>
+        ) : null}
+        {waitLeft > 0 && !busy ? (
+          <View style={{ backgroundColor: '#fffffff2', borderRadius: 10, paddingHorizontal: SP.md, paddingVertical: SP.xs, maxWidth: 240, ...SHADOW }}>
+            <Text style={{ fontSize: FS.sm, color: C.danger }}>Android limitando scans: nova leitura em {waitLeft} s. Amostra não gravada.</Text>
+          </View>
+        ) : null}
         {status ? (
           <View style={{ backgroundColor: '#fffffff2', borderRadius: 10, paddingHorizontal: SP.md, paddingVertical: SP.xs, maxWidth: 240, ...SHADOW }}>
             <Text style={{ fontSize: FS.sm, color: status.startsWith('Escaneando') ? C.muted : C.danger }}>{status}</Text>
@@ -199,7 +258,13 @@ export function MapEditor({ place, update, back, done }: { place: Place; update:
         {sel && map.blocks.length > 1 && (
           <Btn title="Remover quadrado" size="sm" variant="outline" style={{ ...SHADOW }} onPress={removeSel} />
         )}
-        <Btn title={busy ? 'Escaneando…' : sel && scanned(sel) ? 'Escanear de novo' : 'Escanear quadrado'} size="lg" disabled={busy || !sel} style={{ ...SHADOW }} onPress={scanSel} />
+        <Btn
+          title={busy ? 'Escaneando…' : !sel || !scanned(sel) ? 'Escanear quadrado' : 'Escanear de novo'}
+          size="lg"
+          disabled={busy || !sel}
+          style={{ ...SHADOW }}
+          onPress={scanSel}
+        />
         <Btn title="Concluir" size="md" variant="success" style={{ ...SHADOW }} onPress={finish} />
       </View>
     </View>

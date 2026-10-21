@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import * as Location from 'expo-location';
 import type { Nav } from '../../App.tsx';
+import { isUnauthorized } from '../api.ts';
 import { reverseGeocode } from '../geocode.ts';
 import { MapEditor } from '../MapEditor.tsx';
 import { ensureType, listTypes, newId, savePlace, load, type Place, type PlaceType } from '../store.ts';
@@ -13,6 +14,7 @@ export default function PlaceWizard({ nav, placeId, step: initialStep }: Props) 
   const [step, setStep] = useState<1 | 2>(initialStep && initialStep >= 2 ? 2 : 1);
   const [place, setPlace] = useState<Place | null>(null);
   const [ready, setReady] = useState(!placeId);
+  const [saveErr, setSaveErr] = useState('');
 
   useEffect(() => {
     if (!placeId) return;
@@ -23,21 +25,26 @@ export default function PlaceWizard({ nav, placeId, step: initialStep }: Props) 
   }, [placeId]);
 
   // Every change is persisted right away, so nothing is lost if the user leaves with the back button.
+  // Falha de gravação precisa aparecer: engolida, o mapa some depois sem o usuário saber por quê.
   const update = (p: Place) => {
     setPlace(p);
-    savePlace(p).catch(() => {});
+    savePlace(p).then(
+      () => setSaveErr(''),
+      (e) => setSaveErr(isUnauthorized(e) ? 'Sessão expirada: entre de novo, o mapa não foi salvo.' : `Não foi possível salvar: ${e?.message ?? e}`),
+    );
   };
 
   if (!ready) return null;
 
   // Step 2: full-screen map editor.
   if (step === 2 && place) {
-    return <MapEditor place={place} update={update} back={() => setStep(1)} done={() => nav.replaceAll({ name: 'home' })} />;
+    return <MapEditor place={place} update={update} back={() => setStep(1)} done={() => nav.replaceAll({ name: 'home' })} saveError={saveErr} />;
   }
 
   return (
     <View style={{ flex: 1, backgroundColor: C.light, padding: SP.lg }}>
       <Text style={{ color: C.muted, marginBottom: SP.md }}>Passo {step} de 2</Text>
+      {saveErr ? <Text style={{ color: C.danger, marginBottom: SP.md }}>{saveErr}</Text> : null}
       <Step1 place={place} update={update} nav={nav} next={() => setStep(2)} />
     </View>
   );

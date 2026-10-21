@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { AppState, BackHandler, Linking, PermissionsAndroid, Platform, Text, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as Location from 'expo-location';
@@ -12,6 +12,7 @@ import { api, apiEnabled } from './src/api.ts';
 import { initAuth, isAuthed, isAuthReady, onAuthChange } from './src/auth.ts';
 import { pickScreen } from './src/authLogic.ts';
 import { flush } from './src/scanQueue.ts';
+import { startBleSession, startConnWatch, startPassive, stopBleSession, stopConnWatch, stopPassive } from './src/scanner.ts';
 
 export type Route =
   | { name: 'home' }
@@ -43,11 +44,26 @@ export default function App() {
     replaceAll: (r) => setStack([r]),
   };
 
+  const topName = useRef<Route['name']>('home');
+  topName.current = stack[stack.length - 1].name;
   const [access, setAccess] = useState<Access>(null);
   useEffect(() => {
     const check = () => checkAccess().then(setAccess).catch(() => {});
     check();
-    const sub = AppState.addEventListener('change', (st) => st === 'active' && check()); // volta das configurações
+    const sub = AppState.addEventListener('change', (st) => {
+      if (st === 'active') {
+        check(); // volta das configurações
+        // As telas só ligam as fontes ao montar; ao voltar do background religa se alguma delas está aberta.
+        // Navigate usa as três; o editor (wizard) não usa conn watch. Home não usa nenhuma.
+        if (topName.current !== 'home') { startPassive().catch(() => {}); startBleSession().catch(() => {}); }
+        if (topName.current === 'navigate') startConnWatch().catch(() => {});
+      } else if (st === 'background') {
+        // Sem receiver nem rádio BLE varrendo à toa com o app fora de vista (bateria).
+        stopPassive().catch(() => {});
+        stopBleSession().catch(() => {});
+        stopConnWatch().catch(() => {});
+      }
+    });
     return () => sub.remove();
   }, []);
 

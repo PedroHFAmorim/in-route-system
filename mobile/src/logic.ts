@@ -12,11 +12,39 @@ export function formatDist(m: number): string {
   return m < 1000 ? `${Math.round(m)} m` : `${(m / 1000).toFixed(1).replace('.', ',')} km`;
 }
 
+export const BUDGET_MAX = 4; // o limite do Android: 4 scans por 2 min, por app
+export const BUDGET_WINDOW_MS = 120000;
+
+// Timestamps a acrescentar ao histórico quando o Android recusa um scan. O orçamento dele sobrevive
+// ao fechamento do app, o nosso histórico não: diante de um "não", enchemos a janela em vez de insistir.
+export function throttleFill(history: number[], now: number, max = BUDGET_MAX, windowMs = BUDGET_WINDOW_MS): number[] {
+  const inWin = history.filter((t) => now - t < windowMs).length;
+  return Array(Math.max(0, max - inWin)).fill(now);
+}
+
 // 0 if fewer than `max` scans in the window, else ms until the oldest in-window scan leaves it.
-export function budgetWaitMs(history: number[], now: number, max = 4, windowMs = 120000): number {
+export function budgetWaitMs(history: number[], now: number, max = BUDGET_MAX, windowMs = BUDGET_WINDOW_MS): number {
   const inWin = history.filter((t) => now - t < windowMs).sort((a, b) => a - b);
   if (inWin.length < max) return 0;
   return inWin[inWin.length - max] + windowMs - now;
+}
+
+export type ScanPlan = { use: 'cache' | 'active' | 'wait'; waitMs: number };
+
+// Scan ativo é o recurso escasso (4/2min): só gasta quando o cache não serve ou o usuário mudou/pediu.
+// Orçamento estourado nunca bloqueia se há cache; waitMs é só contagem regressiva para a UI (exceto em 'wait').
+export function planScan(input: {
+  cacheAgeMs: number | null;
+  maxAgeMs: number;
+  budgetWaitMs: number;
+  moved: boolean;
+  forced: boolean;
+}): ScanPlan {
+  const { cacheAgeMs, maxAgeMs, budgetWaitMs, moved, forced } = input;
+  const hasCache = cacheAgeMs !== null;
+  if (hasCache && cacheAgeMs <= maxAgeMs && !(moved || forced)) return { use: 'cache', waitMs: 0 };
+  if (budgetWaitMs === 0) return { use: 'active', waitMs: 0 };
+  return hasCache ? { use: 'cache', waitMs: budgetWaitMs } : { use: 'wait', waitMs: budgetWaitMs };
 }
 
 export function bbox(cells: Cell[]) {
@@ -38,4 +66,28 @@ export function rectCells(a: Cell, b: Cell): Cell[] {
   for (let r = Math.min(a.r, b.r); r <= Math.max(a.r, b.r); r++)
     for (let c = Math.min(a.c, b.c); c <= Math.max(a.c, b.c); c++) out.push({ c, r });
   return out;
+}
+
+// Qualidade do mapa de um lugar. Uma leitura por bloco basta: é com ela que o matcher trabalha e
+// já permite navegar. Exigir mais (ex.: várias por quadrado) esbarraria o tempo todo no throttling do
+// Android (4 scans / 2 min) e travaria o mapeamento. Amostras extras continuam possíveis e
+// melhoram o matcher, mas são opcionais.
+type HasSamples = { samples: unknown[] };
+
+export function mapQuality(blocks: HasSamples[]) {
+  return {
+    blocks: blocks.length,
+    scanned: blocks.filter((b) => b.samples.length > 0).length,
+    samples: blocks.reduce((n, b) => n + b.samples.length, 0),
+  };
+}
+
+export const canNavigate = (blocks: HasSamples[]) => blocks.some((b) => b.samples.length > 0);
+
+export function mapQualityLabel(blocks: HasSamples[]): string {
+  const q = mapQuality(blocks);
+  if (!q.blocks) return 'Mapa sem quadrados';
+  const quad = `${q.blocks} quadrado${q.blocks > 1 ? 's' : ''}`;
+  if (!q.scanned) return `${quad} · nenhuma leitura`;
+  return `${quad} · ${q.scanned} com leitura`;
 }
